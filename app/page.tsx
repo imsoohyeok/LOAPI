@@ -1,38 +1,62 @@
-import Link from "next/link";
+"use client";
 
-const TOOLS = [
-  {
-    href: "/compare",
-    title: "캐릭터 비교",
-    description: "두 캐릭터를 나란히 검색해서 아이템레벨과 장비를 비교해보세요.",
-  },
-  {
-    href: "/tracker",
-    title: "성장 트래커",
-    description: "내 캐릭터의 아이템레벨 성장 추이를 기록하고 차트로 확인하세요.",
-  },
-];
+import SearchBar from "@/components/SearchBar";
+import CompareTable from "@/components/CompareTable";
+import GradeLegend from "@/components/GradeLegend";
+import { useCharacterSearch } from "@/lib/useCharacterSearch";
 
-export default function Home() {
+export default function ComparePage() {
+  const leftSearch = useCharacterSearch();
+  const rightSearch = useCharacterSearch();
+
   return (
     <div className="mx-auto max-w-3xl px-5 py-10">
-      <h1 className="mb-2 text-2xl font-bold">로스트아크 툴즈</h1>
+      <h1 className="mb-2 font-display text-3xl tracking-wide text-gray-50 sm:text-4xl">
+        캐릭터 비교
+      </h1>
       <p className="mb-8 text-sm text-gray-400">
-        로스트아크 오픈 API를 활용한 캐릭터 분석 도구 모음이에요.
+        두 캐릭터를 검색하면 아이템레벨과 장비를 나란히 비교해드려요.
       </p>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {TOOLS.map((tool) => (
-          <Link
-            key={tool.href}
-            href={tool.href}
-            className="rounded-xl border border-border bg-surface p-6 transition hover:border-accent"
-          >
-            <h2 className="mb-2 text-lg font-semibold">{tool.title}</h2>
-            <p className="text-sm text-gray-400">{tool.description}</p>
-          </Link>
-        ))}
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-500">
+            캐릭터 A
+          </p>
+          <SearchBar onSearch={leftSearch.search} loading={leftSearch.loading} />
+          {leftSearch.error && (
+            <div className="rounded-lg bg-red-950 px-3 py-2 text-sm text-red-300">
+              {leftSearch.error}
+            </div>
+          )}
+        </div>
+        <div>
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-500">
+            캐릭터 B
+          </p>
+          <SearchBar onSearch={rightSearch.search} loading={rightSearch.loading} />
+          {rightSearch.error && (
+            <div className="rounded-lg bg-red-950 px-3 py-2 text-sm text-red-300">
+              {rightSearch.error}
+            </div>
+          )}
+        </div>
       </div>
+
+      {leftSearch.data && rightSearch.data && (
+        <>
+          <GradeLegend />
+          <CompareTable left={leftSearch.data} right={rightSearch.data} />
+        </>
+      )}
+
+      {(!leftSearch.data || !rightSearch.data) &&
+        !leftSearch.loading &&
+        !rightSearch.loading && (
+          <p className="text-center text-sm text-gray-500">
+            두 캐릭터를 모두 검색하면 비교 결과가 표시됩니다.
+          </p>
+        )}
     </div>
   );
 }

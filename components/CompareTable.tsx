@@ -20,9 +20,15 @@ export default function CompareTable({ left, right }: CompareTableProps) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border text-left text-gray-400">
-            <th className="w-24 px-4 py-3 font-medium">항목</th>
-            <th className="px-4 py-3 font-medium">{left.profile.CharacterName}</th>
-            <th className="px-4 py-3 font-medium">{right.profile.CharacterName}</th>
+            <th className="w-24 px-4 py-3 text-xs font-bold uppercase tracking-widest">
+              항목
+            </th>
+            <th className="px-4 py-3 text-lg font-bold tracking-tight text-gray-100">
+              {left.profile.CharacterName}
+            </th>
+            <th className="px-4 py-3 text-lg font-bold tracking-tight text-gray-100">
+              {right.profile.CharacterName}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -69,7 +75,11 @@ export default function CompareTable({ left, right }: CompareTableProps) {
 
 function Highlighted({ value, isWinner }: { value: string; isWinner: boolean }) {
   return (
-    <td className={`px-4 py-3 ${isWinner ? "font-bold text-gold" : ""}`}>
+    <td
+      className={`px-4 py-3 font-mono text-base ${
+        isWinner ? "font-bold text-gold" : "text-gray-200"
+      }`}
+    >
       {value}
       {isWinner && " ▲"}
     </td>

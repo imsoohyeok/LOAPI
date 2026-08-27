@@ -11,6 +11,11 @@ const config: Config = {
         accent: "#4f7cff",
         gold: "#ffd76a",
       },
+      fontFamily: {
+        sans: ["var(--font-sans)", "sans-serif"],
+        display: ["var(--font-display)", "sans-serif"],
+        mono: ["var(--font-mono)", "monospace"],
+      },
     },
   },
   plugins: [],
