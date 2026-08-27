@@ -2,6 +2,7 @@
 
 import SearchBar from "@/components/SearchBar";
 import CompareTable from "@/components/CompareTable";
+import GradeLegend from "@/components/GradeLegend";
 import { useCharacterSearch } from "@/lib/useCharacterSearch";
 
 export default function ComparePage() {
@@ -37,7 +38,10 @@ export default function ComparePage() {
       </div>
 
       {leftSearch.data && rightSearch.data && (
-        <CompareTable left={leftSearch.data} right={rightSearch.data} />
+        <>
+          <GradeLegend />
+          <CompareTable left={leftSearch.data} right={rightSearch.data} />
+        </>
       )}
 
       {(!leftSearch.data || !rightSearch.data) &&

@@ -1,5 +1,6 @@
-import type { CharacterData } from "@/lib/types";
-import { parseItemLevel } from "@/lib/utils";
+import type { CharacterData, EquipmentItem } from "@/lib/types";
+import { parseItemLevel, filterDisplayEquipment } from "@/lib/utils";
+import { getGradeStyle } from "@/lib/grades";
 
 interface CompareTableProps {
   left: CharacterData;
@@ -10,7 +11,9 @@ export default function CompareTable({ left, right }: CompareTableProps) {
   const leftLevel = parseItemLevel(left.profile.ItemAvgLevel);
   const rightLevel = parseItemLevel(right.profile.ItemAvgLevel);
 
-  const maxEquipLength = Math.max(left.equipment.length, right.equipment.length);
+  const leftEquipment = filterDisplayEquipment(left.equipment);
+  const rightEquipment = filterDisplayEquipment(right.equipment);
+  const maxEquipLength = Math.max(leftEquipment.length, rightEquipment.length);
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface">
@@ -46,15 +49,15 @@ export default function CompareTable({ left, right }: CompareTableProps) {
           </tr>
 
           {Array.from({ length: maxEquipLength }).map((_, idx) => {
-            const l = left.equipment[idx];
-            const r = right.equipment[idx];
+            const l = leftEquipment[idx];
+            const r = rightEquipment[idx];
             return (
               <tr key={idx} className="border-b border-border/60 text-xs">
                 <td className="px-4 py-2 text-gray-500">
                   {l?.Type ?? r?.Type ?? "장비"}
                 </td>
-                <td className="px-4 py-2">{l?.Name ?? "-"}</td>
-                <td className="px-4 py-2">{r?.Name ?? "-"}</td>
+                <GradedCell item={l} />
+                <GradedCell item={r} />
               </tr>
             );
           })}
@@ -69,6 +72,16 @@ function Highlighted({ value, isWinner }: { value: string; isWinner: boolean }) 
     <td className={`px-4 py-3 ${isWinner ? "font-bold text-gold" : ""}`}>
       {value}
       {isWinner && " ▲"}
+    </td>
+  );
+}
+
+function GradedCell({ item }: { item: EquipmentItem | undefined }) {
+  if (!item) return <td className="px-4 py-2 text-gray-600">-</td>;
+  const style = getGradeStyle(item.Grade);
+  return (
+    <td className="px-4 py-2" style={{ color: style.color }}>
+      {item.Name}
     </td>
   );
 }

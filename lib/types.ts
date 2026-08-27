@@ -11,6 +11,7 @@ export type Profile = z.infer<typeof ProfileSchema>;
 export const EquipmentItemSchema = z.object({
   Type: z.string(),
   Name: z.string(),
+  Grade: z.string().nullable().optional(),
 });
 export type EquipmentItem = z.infer<typeof EquipmentItemSchema>;
 
@@ -45,10 +46,6 @@ export const CharacterDataSchema = z.object({
   fromCache: z.boolean().optional(),
 });
 export type CharacterData = z.infer<typeof CharacterDataSchema>;
-
-// ── 로스트아크 API가 실제로 줄 수 있는 "날 것" 응답 스키마 ──────────
-// 각인/보석이 없는 캐릭터는 필드가 null로 내려오는 경우가 있어서 별도로 관대하게 검증합니다.
-// lib/lostark.ts에서 이 스키마로 먼저 검증한 뒤, 위의 정규화된 타입으로 변환합니다.
 
 export const RawEquipmentSchema = z.array(EquipmentItemSchema).nullable();
 
