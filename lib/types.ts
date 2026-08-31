@@ -5,6 +5,7 @@ export const ProfileSchema = z.object({
   ServerName: z.string(),
   CharacterClassName: z.string(),
   ItemAvgLevel: z.string(),
+  CombatPower: z.string().nullable().optional(),
 });
 export type Profile = z.infer<typeof ProfileSchema>;
 

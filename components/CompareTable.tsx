@@ -7,13 +7,28 @@ interface CompareTableProps {
   right: CharacterData;
 }
 
+// 행마다 조금씩 지연시켜 순차적으로 나타나는 효과를 줍니다. (너무 오래 걸리지 않게 상한을 둡니다)
+function rowDelay(index: number): number {
+  return Math.min(index * 45, 400);
+}
+
 export default function CompareTable({ left, right }: CompareTableProps) {
-  const leftLevel = parseItemLevel(left.profile.ItemAvgLevel);
-  const rightLevel = parseItemLevel(right.profile.ItemAvgLevel);
+  const leftItemLevel = parseItemLevel(left.profile.ItemAvgLevel);
+  const rightItemLevel = parseItemLevel(right.profile.ItemAvgLevel);
+
+  const leftCombatPower = left.profile.CombatPower
+    ? parseItemLevel(left.profile.CombatPower)
+    : null;
+  const rightCombatPower = right.profile.CombatPower
+    ? parseItemLevel(right.profile.CombatPower)
+    : null;
+  const hasCombatPower = leftCombatPower !== null && rightCombatPower !== null;
 
   const leftEquipment = filterDisplayEquipment(left.equipment);
   const rightEquipment = filterDisplayEquipment(right.equipment);
   const maxEquipLength = Math.max(leftEquipment.length, rightEquipment.length);
+
+  let rowIndex = 0;
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface">
@@ -32,39 +47,54 @@ export default function CompareTable({ left, right }: CompareTableProps) {
           </tr>
         </thead>
         <tbody>
-          <tr className="border-b border-border/60">
+          {hasCombatPower && (
+            <Row delay={rowDelay(rowIndex++)}>
+              <td className="px-4 py-3 font-bold text-gray-300">전투력</td>
+              <Highlighted
+                value={left.profile.CombatPower!}
+                isWinner={leftCombatPower! > rightCombatPower!}
+                emphasize
+              />
+              <Highlighted
+                value={right.profile.CombatPower!}
+                isWinner={rightCombatPower! > leftCombatPower!}
+                emphasize
+              />
+            </Row>
+          )}
+          <Row delay={rowDelay(rowIndex++)}>
             <td className="px-4 py-3 text-gray-400">아이템레벨</td>
             <Highlighted
               value={left.profile.ItemAvgLevel}
-              isWinner={leftLevel > rightLevel}
+              isWinner={leftItemLevel > rightItemLevel}
             />
             <Highlighted
               value={right.profile.ItemAvgLevel}
-              isWinner={rightLevel > leftLevel}
+              isWinner={rightItemLevel > leftItemLevel}
             />
-          </tr>
-          <tr className="border-b border-border/60">
+          </Row>
+          <Row delay={rowDelay(rowIndex++)}>
             <td className="px-4 py-3 text-gray-400">서버</td>
             <td className="px-4 py-3">{left.profile.ServerName}</td>
             <td className="px-4 py-3">{right.profile.ServerName}</td>
-          </tr>
-          <tr className="border-b border-border/60">
+          </Row>
+          <Row delay={rowDelay(rowIndex++)}>
             <td className="px-4 py-3 text-gray-400">직업</td>
             <td className="px-4 py-3">{left.profile.CharacterClassName}</td>
             <td className="px-4 py-3">{right.profile.CharacterClassName}</td>
-          </tr>
+          </Row>
 
           {Array.from({ length: maxEquipLength }).map((_, idx) => {
             const l = leftEquipment[idx];
             const r = rightEquipment[idx];
             return (
-              <tr key={idx} className="border-b border-border/60 text-xs">
+              <Row key={idx} delay={rowDelay(rowIndex + idx)} className="text-xs">
                 <td className="px-4 py-2 text-gray-500">
                   {l?.Type ?? r?.Type ?? "장비"}
                 </td>
                 <GradedCell item={l} />
                 <GradedCell item={r} />
-              </tr>
+              </Row>
             );
           })}
         </tbody>
@@ -73,15 +103,49 @@ export default function CompareTable({ left, right }: CompareTableProps) {
   );
 }
 
-function Highlighted({ value, isWinner }: { value: string; isWinner: boolean }) {
+function Row({
+  children,
+  delay,
+  className = "",
+}: {
+  children: React.ReactNode;
+  delay: number;
+  className?: string;
+}) {
   return (
-    <td
-      className={`px-4 py-3 font-mono text-base ${
-        isWinner ? "font-bold text-gold" : "text-gray-200"
-      }`}
+    <tr
+      className={`border-b border-border/60 motion-safe:animate-fade-slide-up ${className}`}
+      style={{ animationDelay: `${delay}ms` }}
     >
-      {value}
-      {isWinner && " ▲"}
+      {children}
+    </tr>
+  );
+}
+
+function Highlighted({
+  value,
+  isWinner,
+  emphasize = false,
+}: {
+  value: string;
+  isWinner: boolean;
+  emphasize?: boolean;
+}) {
+  return (
+    <td className="px-4 py-3">
+      <span
+        className={`relative inline-block font-mono ${emphasize ? "text-lg" : "text-base"} ${
+          isWinner
+            ? "rounded px-1.5 py-0.5 font-bold text-gold motion-safe:animate-glow-settle"
+            : "text-gray-200"
+        }`}
+      >
+        {value}
+        {isWinner && <span className="ml-1">▲</span>}
+        {isWinner && (
+          <span className="absolute -bottom-0.5 left-1.5 right-1.5 h-px origin-left scale-x-0 rounded-full bg-gold/70 motion-safe:animate-underline-draw" />
+        )}
+      </span>
     </td>
   );
 }

@@ -44,10 +44,13 @@ export default function ComparePage() {
       </div>
 
       {leftSearch.data && rightSearch.data && (
-        <>
+        <div
+          key={`${leftSearch.data.profile.CharacterName}-${rightSearch.data.profile.CharacterName}`}
+          className="motion-safe:animate-fade-slide-up"
+        >
           <GradeLegend />
           <CompareTable left={leftSearch.data} right={rightSearch.data} />
-        </>
+        </div>
       )}
 
       {(!leftSearch.data || !rightSearch.data) &&

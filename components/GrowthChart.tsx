@@ -28,7 +28,11 @@ export default function GrowthChart({ snapshots }: { snapshots: Snapshot[] }) {
   return (
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={snapshots} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+        <LineChart
+          key={snapshots.length}
+          data={snapshots}
+          margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+        >
           <CartesianGrid strokeDasharray="3 3" stroke="#2a2d35" />
           <XAxis dataKey="date" stroke="#888" fontSize={12} />
           <YAxis stroke="#888" fontSize={12} domain={[min - padding, max + padding]} />
@@ -41,6 +45,9 @@ export default function GrowthChart({ snapshots }: { snapshots: Snapshot[] }) {
             stroke="#4f7cff"
             strokeWidth={2}
             dot={{ r: 4 }}
+            isAnimationActive={true}
+            animationDuration={1000}
+            animationEasing="ease-out"
           />
         </LineChart>
       </ResponsiveContainer>
