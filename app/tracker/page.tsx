@@ -49,10 +49,12 @@ export default function TrackerPage() {
       )}
 
       {data && (
-        <>
-          <CharacterCard profile={data.profile} />
+        <div key={data.profile.CharacterName}>
+          <div className="motion-safe:animate-fade-slide-up">
+            <CharacterCard profile={data.profile} />
+          </div>
 
-          <div className="mb-5 rounded-xl border border-border bg-surface p-6">
+          <div className="mb-5 rounded-xl border border-border bg-surface p-6 motion-safe:animate-fade-slide-up motion-safe:delay-100">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-semibold">성장 추이</h3>
               <button
@@ -71,12 +73,12 @@ export default function TrackerPage() {
           </div>
 
           {snapshots.length > 0 && (
-            <div className="rounded-xl border border-border bg-surface p-6">
+            <div className="rounded-xl border border-border bg-surface p-6 motion-safe:animate-fade-slide-up motion-safe:delay-200">
               <h3 className="mb-3 font-semibold">저장된 기록</h3>
               <SnapshotList snapshots={snapshots} onDelete={handleDelete} />
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
