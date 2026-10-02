@@ -5,12 +5,13 @@
 
 ## 기능
 
-| 페이지           | 설명                                                              |
-| ---------------- | ----------------------------------------------------------------- |
-| `/`              | 홈 랜딩                                                           |
-| `/compare`       | 두 캐릭터를 나란히 비교 (아이템레벨, 서버, 직업, 장비)            |
-| `/tracker`       | 캐릭터 아이템레벨 성장 추이를 localStorage에 기록하고 차트로 확인 |
-| `/market` (예정) | 거래소 시세 트래커                                                |
+| 페이지           | 설명                                                                 |
+| ---------------- | -------------------------------------------------------------------- |
+| `/`              | 홈 랜딩                                                              |
+| `/compare`       | 두 캐릭터를 나란히 비교 (아이템레벨, 서버, 직업, 장비)               |
+| `/tracker`       | 캐릭터 아이템레벨 성장 추이를 localStorage에 기록하고 차트로 확인    |
+| `/expedition`    | 캐릭터 하나로 같은 원정대의 전 캐릭터를 서버별·아이템레벨순으로 확인 |
+| `/market` (예정) | 거래소 시세 트래커                                                   |
 
 ## 기술 스택
 
@@ -26,7 +27,10 @@ lostark-analyzer/
 │   ├── layout.tsx                      ← 전역 레이아웃 (Navbar 포함)
 │   ├── compare/page.tsx                ← 캐릭터 비교 페이지
 │   ├── tracker/page.tsx                ← 성장 트래커 페이지
-│   └── api/character/[name]/route.ts   ← 로스트아크 API 프록시
+│   ├── expedition/page.tsx             ← 원정대 페이지
+│   └── api/character/[name]/
+│       ├── route.ts                    ← 로스트아크 API 프록시
+│       └── siblings/route.ts           ← 원정대(siblings) 프록시
 ├── components/
 │   ├── Navbar.tsx
 │   ├── SearchBar.tsx
@@ -34,15 +38,19 @@ lostark-analyzer/
 │   ├── EquipmentGrid.tsx
 │   ├── EngravingList.tsx
 │   ├── CompareTable.tsx                ← 비교 페이지 전용
+│   ├── RosterTable.tsx                 ← 원정대 페이지 전용
 │   ├── GrowthChart.tsx                 ← 트래커 페이지 전용 (recharts)
 │   └── SnapshotList.tsx                ← 트래커 페이지 전용
 ├── lib/
 │   ├── types.ts                        ← Zod 스키마 + 타입
 │   ├── lostark.ts                      ← 로스트아크 API 클라이언트 (서버 전용)
 │   ├── cache.ts                        ← 인메모리 캐시
+│   ├── apiError.ts                     ← API 라우트 공통 에러 응답
 │   ├── storage.ts                      ← localStorage 스냅샷 저장 (트래커용)
 │   ├── utils.ts                        ← 공통 유틸 (아이템레벨 파싱 등)
-│   └── useCharacterSearch.ts           ← 캐릭터 조회 공용 훅
+│   ├── roster.ts                       ← 원정대 서버별 그룹·정렬·요약 (순수 함수)
+│   ├── useCharacterSearch.ts           ← 캐릭터 조회 공용 훅
+│   └── useRoster.ts                    ← 원정대 조회 훅
 └── __tests__/                          ← Vitest + RTL 테스트
 ```
 
@@ -54,6 +62,9 @@ lostark-analyzer/
   비용이 전혀 들지 않고, 사용자의 데이터가 외부로 전송되지 않습니다.
 - **비교 테이블의 하이라이트 로직**(`CompareTable.tsx`)은 아이템레벨을 숫자로 변환해서
   비교합니다. API가 문자열("1680.00")로 내려주기 때문에 `lib/utils.ts`의 `parseItemLevel`을 거칩니다.
+- **원정대 데이터 가공은 순수 함수로 분리**했습니다. `lib/roster.ts`가 서버별 그룹·정렬·요약을
+  맡아서 UI 없이 단위 테스트할 수 있고, `useRoster`는 연속 검색 시 이전 요청을 `AbortController`로
+  취소해 늦게 도착한 응답이 최신 결과를 덮어쓰지 않도록 했습니다.
 - **AI 분석 기능은 제거했습니다.** 별도 API 크레딧/과금 없이 로스트아크 API만으로 완결되는
   구조로 방향을 바꿨습니다.
 
