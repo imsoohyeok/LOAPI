@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ProfileSchema, CharacterDataSchema } from "@/lib/types";
+import { ProfileSchema, CharacterDataSchema, RawSiblingsSchema } from "@/lib/types";
 
 describe("ProfileSchema", () => {
   it("올바른 형태의 프로필 데이터를 통과시킨다", () => {
@@ -32,5 +32,24 @@ describe("CharacterDataSchema", () => {
       gems: { Gems: [] },
     };
     expect(() => CharacterDataSchema.parse(valid)).not.toThrow();
+  });
+});
+
+describe("RawSiblingsSchema", () => {
+  it("원정대 캐릭터 목록을 통과시킨다", () => {
+    const valid = [
+      {
+        ServerName: "루페온",
+        CharacterName: "홍길동",
+        CharacterLevel: 70,
+        CharacterClassName: "바드",
+        ItemAvgLevel: "1,640.00",
+      },
+    ];
+    expect(() => RawSiblingsSchema.parse(valid)).not.toThrow();
+  });
+
+  it("존재하지 않는 캐릭터일 때 오는 null도 허용한다", () => {
+    expect(RawSiblingsSchema.parse(null)).toBeNull();
   });
 });

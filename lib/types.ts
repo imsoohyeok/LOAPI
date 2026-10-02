@@ -48,6 +48,25 @@ export const CharacterDataSchema = z.object({
 });
 export type CharacterData = z.infer<typeof CharacterDataSchema>;
 
+// /characters/{name}/siblings 응답의 한 항목. 같은 계정(원정대)의 모든 서버 캐릭터가 담겨 옵니다.
+export const SiblingSchema = z.object({
+  ServerName: z.string(),
+  CharacterName: z.string(),
+  CharacterLevel: z.number(),
+  CharacterClassName: z.string(),
+  ItemAvgLevel: z.string(),
+});
+export type Sibling = z.infer<typeof SiblingSchema>;
+
+export const RosterSchema = z.array(SiblingSchema);
+export type Roster = z.infer<typeof RosterSchema>;
+
+export const RosterResponseSchema = z.object({
+  roster: RosterSchema,
+  fromCache: z.boolean().optional(),
+});
+export type RosterResponse = z.infer<typeof RosterResponseSchema>;
+
 export const RawEquipmentSchema = z.array(EquipmentItemSchema).nullable();
 
 export const RawEngravingsSchema = z
@@ -61,3 +80,5 @@ export const RawGemsSchema = z
     Gems: z.array(GemSchema).nullable().optional(),
   })
   .nullable();
+
+export const RawSiblingsSchema = z.array(SiblingSchema).nullable();
