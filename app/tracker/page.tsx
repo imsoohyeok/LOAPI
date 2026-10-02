@@ -5,6 +5,7 @@ import SearchBar from "@/components/SearchBar";
 import CharacterCard from "@/components/CharacterCard";
 import EngravingList from "@/components/EngravingList";
 import EquipmentGrid from "@/components/EquipmentGrid";
+import GemList from "@/components/GemList";
 import GrowthChart from "@/components/GrowthChart";
 import SnapshotList from "@/components/SnapshotList";
 import { useCharacterSearch } from "@/lib/useCharacterSearch";
@@ -59,6 +60,7 @@ export default function TrackerPage() {
           <div className="motion-safe:animate-fade-slide-up motion-safe:delay-100">
             <EngravingList engravings={data.engravings} />
             <EquipmentGrid equipment={data.equipment} />
+            <GemList gems={data.gems} />
           </div>
 
           <div className="mb-5 rounded-xl border border-border bg-surface p-6 motion-safe:animate-fade-slide-up motion-safe:delay-100">
