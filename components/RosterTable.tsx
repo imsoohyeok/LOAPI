@@ -24,7 +24,13 @@ export default function RosterTable({ groups, highlightName }: RosterTableProps)
               {group.characters.length}캐릭터
             </span>
           </h2>
-          <table className="w-full text-sm">
+          <table className="w-full table-fixed text-sm">
+            {/* 서버마다 표가 따로라서 열 너비를 고정해야 세로 줄이 맞습니다 */}
+            <colgroup>
+              <col className="w-[45%]" />
+              <col className="w-[30%]" />
+              <col className="w-[25%]" />
+            </colgroup>
             <thead className="sr-only">
               <tr>
                 <th scope="col">캐릭터명</th>
@@ -43,7 +49,7 @@ export default function RosterTable({ groups, highlightName }: RosterTableProps)
                       isSearched ? "bg-accent/10" : ""
                     }`}
                   >
-                    <td className="px-4 py-3">
+                    <td className="truncate px-4 py-3">
                       <span className={isSearched ? "font-bold text-accent" : ""}>
                         {character.CharacterName}
                       </span>

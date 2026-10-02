@@ -9,6 +9,12 @@ import { groupRosterByServer, summarizeRoster } from "@/lib/roster";
 // 요약 카드에서 "주력 캐릭터"로 세는 아이템레벨 기준
 const MAIN_THRESHOLD = 1640;
 
+// API의 ItemAvgLevel 표기("1,680.00")와 같은 형태로 맞춥니다.
+const levelFormatter = new Intl.NumberFormat("ko-KR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 export default function ExpeditionPage() {
   const { roster, searchedName, loading, error, search } = useRoster();
 
@@ -42,8 +48,14 @@ export default function ExpeditionPage() {
         <div key={searchedName} className="motion-safe:animate-fade-in">
           <dl className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <SummaryItem label="캐릭터" value={`${summary.total}`} />
-            <SummaryItem label="최고 레벨" value={summary.highestItemLevel.toFixed(2)} />
-            <SummaryItem label="평균 레벨" value={summary.averageItemLevel.toFixed(2)} />
+            <SummaryItem
+              label="최고 레벨"
+              value={levelFormatter.format(summary.highestItemLevel)}
+            />
+            <SummaryItem
+              label="평균 레벨"
+              value={levelFormatter.format(summary.averageItemLevel)}
+            />
             <SummaryItem
               label={`${MAIN_THRESHOLD} 이상`}
               value={`${summary.countAtOrAbove}`}
