@@ -25,7 +25,11 @@ export class LostarkApiError extends Error {
 
 // 스키마 검증에 실패하면 실제 원본 응답을 그대로 터미널에 출력합니다.
 // 이 로그를 보면 실제 필드명이 뭔지 정확히 알 수 있어요.
-function parseOrLog<T>(schema: z.ZodType<T>, raw: unknown, label: string): T {
+function parseOrLog<T>(
+  schema: z.ZodType<T, z.ZodTypeDef, unknown>,
+  raw: unknown,
+  label: string,
+): T {
   const result = schema.safeParse(raw);
   if (!result.success) {
     console.error(`\n===== [${label}] 스키마 불일치 =====`);
@@ -95,7 +99,7 @@ export async function getGems(characterName: string): Promise<Gems> {
     `/armories/characters/${encodeURIComponent(characterName)}/gems`,
   );
   const parsed = parseOrLog(RawGemsSchema, raw, "gems");
-  return { Gems: parsed?.Gems ?? [] };
+  return { Gems: parsed?.Gems ?? [], Skills: parsed?.Effects?.Skills ?? [] };
 }
 
 export async function getFullCharacterData(characterName: string) {
