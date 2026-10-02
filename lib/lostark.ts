@@ -5,11 +5,14 @@ import {
   RawEquipmentSchema,
   RawEngravingsSchema,
   RawGemsSchema,
+  RawSiblingsSchema,
   type Profile,
   type Equipment,
   type Engravings,
   type Gems,
+  type Roster,
 } from "@/lib/types";
+import { normalizeEngravings } from "@/lib/engravings";
 
 const BASE_URL = "https://developer-lostark.game.onstove.com";
 
@@ -90,8 +93,7 @@ export async function getEngravings(characterName: string): Promise<Engravings> 
   const raw = await fetchLostark(
     `/armories/characters/${encodeURIComponent(characterName)}/engravings`,
   );
-  const parsed = parseOrLog(RawEngravingsSchema, raw, "engravings");
-  return { Engravings: parsed?.Engravings ?? [] };
+  return normalizeEngravings(parseOrLog(RawEngravingsSchema, raw, "engravings"));
 }
 
 export async function getGems(characterName: string): Promise<Gems> {
@@ -100,6 +102,18 @@ export async function getGems(characterName: string): Promise<Gems> {
   );
   const parsed = parseOrLog(RawGemsSchema, raw, "gems");
   return { Gems: parsed?.Gems ?? [], Skills: parsed?.Effects?.Skills ?? [] };
+}
+
+// 존재하지 않는 캐릭터면 404 대신 200 + null(또는 빈 배열)이 오므로 직접 NOT_FOUND로 바꿉니다.
+export async function getSiblings(characterName: string): Promise<Roster> {
+  const raw = await fetchLostark(
+    `/characters/${encodeURIComponent(characterName)}/siblings`,
+  );
+  const parsed = parseOrLog(RawSiblingsSchema, raw, "siblings");
+  if (!parsed || parsed.length === 0) {
+    throw new LostarkApiError("NOT_FOUND", "캐릭터를 찾을 수 없습니다.");
+  }
+  return parsed;
 }
 
 export async function getFullCharacterData(characterName: string) {

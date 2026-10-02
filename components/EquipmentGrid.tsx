@@ -10,11 +10,11 @@ export default function EquipmentGrid({ equipment }: { equipment: Equipment }) {
     <div className="mb-5 rounded-xl border border-border bg-surface p-6">
       <h3 className="mb-3 font-semibold">장비</h3>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-2.5">
-        {filtered.map((item, idx) => {
+        {filtered.map((item) => {
           const style = getGradeStyle(item.Grade);
           return (
             <div
-              key={idx}
+              key={`${item.Type}-${item.Name}`}
               className="rounded-lg border-l-4 bg-bg/60 px-3 py-2.5 text-sm"
               style={{ borderLeftColor: style.border, backgroundColor: style.bg }}
             >

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import SearchBar from "@/components/SearchBar";
 import CharacterCard from "@/components/CharacterCard";
+import EngravingList from "@/components/EngravingList";
+import EquipmentGrid from "@/components/EquipmentGrid";
 import GemList from "@/components/GemList";
 import GrowthChart from "@/components/GrowthChart";
 import SnapshotList from "@/components/SnapshotList";
@@ -55,7 +57,9 @@ export default function TrackerPage() {
             <CharacterCard profile={data.profile} />
           </div>
 
-          <div className="motion-safe:animate-fade-slide-up motion-safe:delay-75">
+          <div className="motion-safe:animate-fade-slide-up motion-safe:delay-100">
+            <EngravingList engravings={data.engravings} />
+            <EquipmentGrid equipment={data.equipment} />
             <GemList gems={data.gems} />
           </div>
 
