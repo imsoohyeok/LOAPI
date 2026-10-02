@@ -12,6 +12,7 @@ import {
   type Gems,
   type Roster,
 } from "@/lib/types";
+import { normalizeEngravings } from "@/lib/engravings";
 
 const BASE_URL = "https://developer-lostark.game.onstove.com";
 
@@ -88,8 +89,7 @@ export async function getEngravings(characterName: string): Promise<Engravings> 
   const raw = await fetchLostark(
     `/armories/characters/${encodeURIComponent(characterName)}/engravings`,
   );
-  const parsed = parseOrLog(RawEngravingsSchema, raw, "engravings");
-  return { Engravings: parsed?.Engravings ?? [] };
+  return normalizeEngravings(parseOrLog(RawEngravingsSchema, raw, "engravings"));
 }
 
 export async function getGems(characterName: string): Promise<Gems> {
