@@ -1,4 +1,4 @@
-import type { CharacterData, EquipmentItem } from "@/lib/types";
+import type { CharacterData, Engraving, EquipmentItem } from "@/lib/types";
 import { parseItemLevel, filterDisplayEquipment } from "@/lib/utils";
 import { getGradeStyle } from "@/lib/grades";
 
@@ -27,6 +27,15 @@ export default function CompareTable({ left, right }: CompareTableProps) {
   const leftEquipment = filterDisplayEquipment(left.equipment);
   const rightEquipment = filterDisplayEquipment(right.equipment);
   const maxEquipLength = Math.max(leftEquipment.length, rightEquipment.length);
+
+  const leftEngravings = left.engravings.Engravings;
+  const rightEngravings = right.engravings.Engravings;
+  const hasEngravings = leftEngravings.length > 0 || rightEngravings.length > 0;
+  // 두 캐릭터가 같이 쓰는 각인은 밑줄로 표시해서 차이점이 눈에 들어오게 합니다.
+  const rightNames = new Set(rightEngravings.map((e) => e.Name));
+  const sharedEngravings = new Set(
+    leftEngravings.filter((e) => rightNames.has(e.Name)).map((e) => e.Name),
+  );
 
   let rowIndex = 0;
 
@@ -83,6 +92,13 @@ export default function CompareTable({ left, right }: CompareTableProps) {
             <td className="px-4 py-3">{left.profile.CharacterClassName}</td>
             <td className="px-4 py-3">{right.profile.CharacterClassName}</td>
           </Row>
+          {hasEngravings && (
+            <Row delay={rowDelay(rowIndex++)}>
+              <td className="px-4 py-3 align-top text-gray-400">각인</td>
+              <EngravingCell list={leftEngravings} shared={sharedEngravings} />
+              <EngravingCell list={rightEngravings} shared={sharedEngravings} />
+            </Row>
+          )}
 
           {Array.from({ length: maxEquipLength }).map((_, idx) => {
             const l = leftEquipment[idx];
@@ -156,6 +172,32 @@ function GradedCell({ item }: { item: EquipmentItem | undefined }) {
   return (
     <td className="px-4 py-2" style={{ color: style.color }}>
       {item.Name}
+    </td>
+  );
+}
+
+function EngravingCell({ list, shared }: { list: Engraving[]; shared: Set<string> }) {
+  if (list.length === 0) return <td className="px-4 py-3 align-top text-gray-600">-</td>;
+  return (
+    <td className="px-4 py-3 align-top">
+      <ul className="space-y-0.5 text-xs">
+        {list.map((eng) => (
+          <li
+            key={eng.Name}
+            className={
+              shared.has(eng.Name)
+                ? "underline decoration-gray-600 underline-offset-2"
+                : ""
+            }
+            style={{ color: eng.Grade ? getGradeStyle(eng.Grade).color : undefined }}
+          >
+            {eng.Name}
+            {eng.Level != null && (
+              <span className="ml-1 font-mono text-gray-400">{eng.Level}</span>
+            )}
+          </li>
+        ))}
+      </ul>
     </td>
   );
 }
