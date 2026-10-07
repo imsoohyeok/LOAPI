@@ -9,6 +9,7 @@ import EquipmentGrid from "@/components/EquipmentGrid";
 import GemList from "@/components/GemList";
 import GrowthChart from "@/components/GrowthChart";
 import SnapshotList from "@/components/SnapshotList";
+import TrackerBackup from "@/components/TrackerBackup";
 import TrackerCharacterSwitcher from "@/components/TrackerCharacterSwitcher";
 import { useCharacterQuery } from "@/lib/useCharacterSearch";
 import { useTrackerName } from "@/lib/useTrackerName";
@@ -45,6 +46,8 @@ export default function TrackerView() {
         캐릭터를 검색하고 스냅샷을 저장하면 아이템레벨 성장 추이를 볼 수 있어요. 기록은 이
         브라우저에만 저장돼요 (서버에 전송되지 않음).
       </p>
+
+      <TrackerBackup hasRecords={(summaries?.length ?? 0) > 0} />
 
       <TrackerCharacterSwitcher summaries={summaries} current={characterName ?? name} />
 

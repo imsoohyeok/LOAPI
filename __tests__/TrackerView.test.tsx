@@ -138,4 +138,25 @@ describe("TrackerView", () => {
     expect(screen.getByTestId("chart")).toHaveTextContent("0개 기록");
     expect(screen.queryByRole("navigation", { name: "기록한 캐릭터" })).toBeNull();
   });
+
+  it("백업 파일을 불러오면 캐릭터 전환 목록에 바로 나타난다", async () => {
+    const user = userEvent.setup();
+    renderView("/tracker");
+    expect(screen.queryByRole("navigation", { name: "기록한 캐릭터" })).toBeNull();
+    expect(screen.getByRole("button", { name: "파일로 내보내기" })).toBeDisabled();
+
+    const backup = {
+      kind: "lostark-tracker-backup",
+      version: 1,
+      exportedAt: "2026-10-07T00:00:00.000Z",
+      characters: { 바드: [{ date: "2026-10-01", itemLevel: 1675 }] },
+    };
+    await user.upload(
+      screen.getByLabelText("백업 파일 선택"),
+      new File([JSON.stringify(backup)], "backup.json", { type: "application/json" }),
+    );
+
+    expect(await screen.findByRole("link", { name: "바드" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "파일로 내보내기" })).toBeEnabled();
+  });
 });
