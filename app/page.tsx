@@ -1,65 +1,64 @@
-"use client";
+import Link from "next/link";
+import TrackedCharacters from "@/components/TrackedCharacters";
+import { FEATURES } from "@/lib/features";
 
-import SearchBar from "@/components/SearchBar";
-import CompareTable from "@/components/CompareTable";
-import GradeLegend from "@/components/GradeLegend";
-import { useCharacterSearch } from "@/lib/useCharacterSearch";
-
-export default function ComparePage() {
-  const leftSearch = useCharacterSearch();
-  const rightSearch = useCharacterSearch();
-
+export default function HomePage() {
   return (
-    <div className="mx-auto max-w-3xl px-5 py-10">
-      <h1 className="mb-2 font-display text-3xl tracking-wide text-gray-50 sm:text-4xl">
-        캐릭터 비교
-      </h1>
-      <p className="mb-8 text-sm text-gray-400">
-        두 캐릭터를 검색하면 아이템레벨과 장비를 나란히 비교해드려요.
-      </p>
+    <div className="mx-auto max-w-3xl px-5 py-12">
+      <section className="mb-12 motion-safe:animate-fade-slide-up">
+        <h1 className="mb-3 font-display text-4xl tracking-wide text-gray-50 sm:text-5xl">
+          로스트아크 툴즈
+        </h1>
+        <p className="max-w-xl text-sm leading-relaxed text-gray-400 sm:text-base">
+          로스트아크 오픈 API로 캐릭터를 비교하고, 성장을 기록하고, 원정대를 한눈에
+          확인해요.
+        </p>
+      </section>
 
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-500">
-            캐릭터 A
-          </p>
-          <SearchBar onSearch={leftSearch.search} loading={leftSearch.loading} />
-          {leftSearch.error && (
-            <div className="rounded-lg bg-red-950 px-3 py-2 text-sm text-red-300">
-              {leftSearch.error}
-            </div>
-          )}
-        </div>
-        <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-500">
-            캐릭터 B
-          </p>
-          <SearchBar onSearch={rightSearch.search} loading={rightSearch.loading} />
-          {rightSearch.error && (
-            <div className="rounded-lg bg-red-950 px-3 py-2 text-sm text-red-300">
-              {rightSearch.error}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {leftSearch.data && rightSearch.data && (
-        <div
-          key={`${leftSearch.data.profile.CharacterName}-${rightSearch.data.profile.CharacterName}`}
-          className="motion-safe:animate-fade-slide-up"
+      <section aria-labelledby="features-heading" className="mb-12">
+        <h2
+          id="features-heading"
+          className="mb-4 text-xs font-bold uppercase tracking-widest text-gray-500"
         >
-          <GradeLegend />
-          <CompareTable left={leftSearch.data} right={rightSearch.data} />
-        </div>
-      )}
+          기능
+        </h2>
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {FEATURES.map((feature) => (
+            <li key={feature.href}>
+              <Link
+                href={feature.href}
+                className="group flex h-full flex-col rounded-xl border border-border bg-surface p-5 transition hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <span className="mb-2 flex items-center justify-between font-semibold text-gray-100">
+                  {feature.label}
+                  <span
+                    aria-hidden
+                    className="text-gray-600 transition group-hover:translate-x-0.5 group-hover:text-accent"
+                  >
+                    →
+                  </span>
+                </span>
+                <span className="text-sm leading-relaxed text-gray-400">
+                  {feature.description}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-      {(!leftSearch.data || !rightSearch.data) &&
-        !leftSearch.loading &&
-        !rightSearch.loading && (
-          <p className="text-center text-sm text-gray-500">
-            두 캐릭터를 모두 검색하면 비교 결과가 표시됩니다.
-          </p>
-        )}
+      <section aria-labelledby="tracked-heading">
+        <h2
+          id="tracked-heading"
+          className="mb-4 text-xs font-bold uppercase tracking-widest text-gray-500"
+        >
+          최근 기록한 캐릭터
+        </h2>
+        <TrackedCharacters />
+        <p className="mt-2 text-xs text-gray-600">
+          성장 트래커 기록은 이 브라우저에만 저장돼요.
+        </p>
+      </section>
     </div>
   );
 }
