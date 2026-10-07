@@ -32,3 +32,16 @@ describe("SearchBar", () => {
     expect(button).toBeDisabled();
   });
 });
+
+describe("SearchBar initialValue", () => {
+  it("initialValue로 입력창을 채우고, 값이 바뀌면 따라간다", () => {
+    const { rerender } = render(
+      <SearchBar onSearch={vi.fn()} loading={false} initialValue="본캐" />,
+    );
+    const input = screen.getByPlaceholderText("캐릭터명을 입력하세요");
+    expect(input).toHaveValue("본캐");
+
+    rerender(<SearchBar onSearch={vi.fn()} loading={false} initialValue="부캐" />);
+    expect(input).toHaveValue("부캐");
+  });
+});

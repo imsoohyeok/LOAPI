@@ -5,10 +5,23 @@ import { useState, type FormEvent } from "react";
 interface SearchBarProps {
   onSearch: (name: string) => void | Promise<unknown>;
   loading: boolean;
+  // 바깥(URL 쿼리 등)에서 정해진 검색어. 바뀌면 입력창도 그 값으로 맞춥니다.
+  initialValue?: string;
 }
 
-export default function SearchBar({ onSearch, loading }: SearchBarProps) {
-  const [value, setValue] = useState("");
+export default function SearchBar({
+  onSearch,
+  loading,
+  initialValue = "",
+}: SearchBarProps) {
+  const [value, setValue] = useState(initialValue);
+  // 뒤로가기로 URL이 바뀌면 입력창도 따라가야 합니다. useEffect로 맞추면 한 번 옛 값으로
+  // 그린 뒤 다시 그리게 되므로, 렌더 중에 이전 prop과 비교해서 바로 state를 고칩니다.
+  const [prevInitialValue, setPrevInitialValue] = useState(initialValue);
+  if (initialValue !== prevInitialValue) {
+    setPrevInitialValue(initialValue);
+    setValue(initialValue);
+  }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
