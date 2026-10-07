@@ -11,9 +11,35 @@ function getKey(characterName: string): string {
   return `${STORAGE_PREFIX}${characterName}`;
 }
 
-export function getSnapshots(characterName: string): Snapshot[] {
-  if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(getKey(characterName));
+// localStorage는 바뀌어도 React에 알려주지 않으므로, 이 모듈을 거친 쓰기는 직접 알립니다.
+// 다른 탭에서 바뀐 기록은 브라우저가 보내는 storage 이벤트로 받습니다.
+const listeners = new Set<() => void>();
+
+function notify() {
+  listeners.forEach((listener) => listener());
+}
+
+export function subscribeTracker(listener: () => void): () => void {
+  function handleStorage(e: StorageEvent) {
+    // key가 null이면 다른 탭에서 localStorage.clear()를 부른 경우입니다.
+    if (e.key === null || e.key.startsWith(STORAGE_PREFIX)) listener();
+  }
+  listeners.add(listener);
+  window.addEventListener("storage", handleStorage);
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener("storage", handleStorage);
+  };
+}
+
+// 저장된 원본 문자열입니다. useSyncExternalStore가 Object.is로 변경 여부를 비교하므로
+// 매번 새 배열을 만드는 파싱 결과 대신 문자열 그대로를 스냅샷으로 씁니다.
+export function getRawSnapshots(characterName: string): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(getKey(characterName));
+}
+
+export function parseSnapshots(raw: string | null): Snapshot[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as Snapshot[];
@@ -23,19 +49,30 @@ export function getSnapshots(characterName: string): Snapshot[] {
   }
 }
 
+export function getSnapshots(characterName: string): Snapshot[] {
+  return parseSnapshots(getRawSnapshots(characterName));
+}
+
+function saveSnapshots(characterName: string, snapshots: Snapshot[]) {
+  // 마지막 기록을 지우면 키도 지워서, 빈 기록이 트래커 목록에 남지 않게 합니다.
+  if (snapshots.length === 0) window.localStorage.removeItem(getKey(characterName));
+  else window.localStorage.setItem(getKey(characterName), JSON.stringify(snapshots));
+  notify();
+}
+
 export function addSnapshot(characterName: string, itemLevel: number): Snapshot[] {
   const today = new Date().toISOString().slice(0, 10);
   const existing = getSnapshots(characterName).filter((s) => s.date !== today);
   const updated = [...existing, { date: today, itemLevel }].sort((a, b) =>
     a.date.localeCompare(b.date),
   );
-  window.localStorage.setItem(getKey(characterName), JSON.stringify(updated));
+  saveSnapshots(characterName, updated);
   return updated;
 }
 
 export function deleteSnapshot(characterName: string, date: string): Snapshot[] {
   const updated = getSnapshots(characterName).filter((s) => s.date !== date);
-  window.localStorage.setItem(getKey(characterName), JSON.stringify(updated));
+  saveSnapshots(characterName, updated);
   return updated;
 }
 

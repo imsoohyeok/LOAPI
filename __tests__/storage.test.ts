@@ -1,5 +1,10 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { getTrackedSummaries } from "@/lib/storage";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import {
+  addSnapshot,
+  deleteSnapshot,
+  getTrackedSummaries,
+  subscribeTracker,
+} from "@/lib/storage";
 
 function seed(name: string, value: unknown) {
   window.localStorage.setItem(`lostark-tracker:${name}`, JSON.stringify(value));
@@ -35,5 +40,41 @@ describe("getTrackedSummaries", () => {
     window.localStorage.setItem("other-app", "[]");
     seed("정상", [{ date: "2026-10-01", itemLevel: 1640 }]);
     expect(getTrackedSummaries().map((s) => s.name)).toEqual(["정상"]);
+  });
+});
+
+describe("subscribeTracker", () => {
+  beforeEach(() => window.localStorage.clear());
+
+  it("저장·삭제하면 구독자에게 알리고, 해제하면 더 알리지 않는다", () => {
+    const listener = vi.fn();
+    const unsubscribe = subscribeTracker(listener);
+    addSnapshot("바드", 1680);
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+    addSnapshot("바드", 1681);
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it("다른 탭의 트래커 키 변경과 clear만 알린다", () => {
+    const listener = vi.fn();
+    const unsubscribe = subscribeTracker(listener);
+    window.dispatchEvent(new StorageEvent("storage", { key: "other-app" }));
+    expect(listener).not.toHaveBeenCalled();
+    window.dispatchEvent(new StorageEvent("storage", { key: "lostark-tracker:바드" }));
+    window.dispatchEvent(new StorageEvent("storage", { key: null }));
+    expect(listener).toHaveBeenCalledTimes(2);
+    unsubscribe();
+  });
+});
+
+describe("deleteSnapshot", () => {
+  beforeEach(() => window.localStorage.clear());
+
+  it("마지막 기록을 지우면 키도 지운다", () => {
+    seed("바드", [{ date: "2026-10-01", itemLevel: 1680 }]);
+    expect(deleteSnapshot("바드", "2026-10-01")).toEqual([]);
+    expect(window.localStorage.getItem("lostark-tracker:바드")).toBeNull();
   });
 });
