@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Gothic_A1, Black_Han_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import Providers from "@/app/providers";
 
 const gothicA1 = Gothic_A1({
   subsets: ["latin"],
@@ -36,8 +37,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${gothicA1.variable} ${blackHanSans.variable} ${jetBrainsMono.variable}`}
     >
       <body className="bg-bg font-sans text-gray-100">
-        <Navbar />
-        {children}
+        <Providers>
+          <Navbar />
+          {children}
+        </Providers>
       </body>
     </html>
   );
