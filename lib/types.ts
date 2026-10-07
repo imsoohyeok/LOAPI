@@ -84,6 +84,13 @@ export const CharacterDataSchema = z
   .merge(CacheMetaSchema);
 export type CharacterData = z.infer<typeof CharacterDataSchema>;
 
+// /api/character/[name]/profile 응답. 원정대 일괄 조회에서 캐릭터마다 하나씩 받습니다.
+export const ProfileResponseSchema = z
+  .object({
+    profile: ProfileSchema,
+  })
+  .merge(CacheMetaSchema);
+
 // /characters/{name}/siblings 응답의 한 항목. 같은 계정(원정대)의 모든 서버 캐릭터가 담겨 옵니다.
 export const SiblingSchema = z.object({
   ServerName: z.string(),

@@ -1,8 +1,10 @@
 import { toCacheInfo, type WithCacheInfo } from "@/lib/cacheStatus";
 import {
   CharacterDataSchema,
+  ProfileResponseSchema,
   RosterResponseSchema,
   type CharacterData,
+  type Profile,
   type Roster,
 } from "@/lib/types";
 import {
@@ -28,6 +30,7 @@ export class ApiError extends Error {
 export const queryKeys = {
   character: (name: string) => ["character", name] as const,
   roster: (name: string) => ["roster", name] as const,
+  profile: (name: string) => ["profile", name] as const,
   // 필터 객체를 키에 그대로 넣습니다. React Query는 객체 키를 속성 순서와 무관하게 해시하므로
   // 조건이 같으면 같은 캐시를 쓰고, 하나라도 다르면 별도 캐시가 됩니다.
   marketItems: (filters: MarketFilters) => ["market", "items", filters] as const,
@@ -73,6 +76,16 @@ export async function fetchRoster(
   const parsed = RosterResponseSchema.safeParse(json);
   if (!parsed.success) throw new ApiError("서버 응답 형식이 예상과 다릅니다.", 200);
   return { roster: parsed.data.roster, cacheInfo: toCacheInfo(parsed.data, Date.now()) };
+}
+
+export async function fetchProfile(name: string, signal?: AbortSignal): Promise<Profile> {
+  const json = await getJson(
+    `/api/character/${encodeURIComponent(name)}/profile`,
+    signal,
+  );
+  const parsed = ProfileResponseSchema.safeParse(json);
+  if (!parsed.success) throw new ApiError("서버 응답 형식이 예상과 다릅니다.", 200);
+  return parsed.data.profile;
 }
 
 export async function fetchMarketItems(
