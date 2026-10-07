@@ -31,12 +31,14 @@ export default function SearchBar({
 
   return (
     <form className="mb-8 flex gap-2" onSubmit={handleSubmit}>
+      {/* input은 기본 너비(size=20)가 있어서 flex 아이템의 min-width: auto가 그보다 줄어들지 못합니다.
+          min-w-0이 없으면 좁은 화면에서 입력창이 검색 버튼을 화면 밖으로 밀어냅니다. */}
       <input
         type="text"
         placeholder="캐릭터명을 입력하세요"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="flex-1 rounded-lg border border-border bg-surface px-4 py-3 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-accent"
+        className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-4 py-3 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-accent"
       />
       <button
         type="submit"
