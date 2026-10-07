@@ -12,6 +12,13 @@ import {
   type MarketOptions,
 } from "@/lib/market";
 import { toMarketSearch, type MarketFilters } from "@/lib/marketParams";
+import {
+  AuctionItemsResponseSchema,
+  AuctionOptionsResponseSchema,
+  type AuctionItemsPage,
+  type AuctionOptions,
+} from "@/lib/auction";
+import { toAuctionSearch, type AuctionFilters } from "@/lib/auctionParams";
 
 // API 라우트가 돌려준 에러. status로 재시도 여부를 판단하고, message는 화면에 그대로 보여줍니다.
 export class ApiError extends Error {
@@ -32,6 +39,8 @@ export const queryKeys = {
   // 조건이 같으면 같은 캐시를 쓰고, 하나라도 다르면 별도 캐시가 됩니다.
   marketItems: (filters: MarketFilters) => ["market", "items", filters] as const,
   marketOptions: () => ["market", "options"] as const,
+  auctionItems: (filters: AuctionFilters) => ["auction", "items", filters] as const,
+  auctionOptions: () => ["auction", "options"] as const,
 };
 
 async function getJson(url: string, signal?: AbortSignal): Promise<unknown> {
@@ -88,6 +97,23 @@ export async function fetchMarketItems(
 export async function fetchMarketOptions(signal?: AbortSignal): Promise<MarketOptions> {
   const json = await getJson("/api/market/options", signal);
   const parsed = MarketOptionsResponseSchema.safeParse(json);
+  if (!parsed.success) throw new ApiError("서버 응답 형식이 예상과 다릅니다.", 200);
+  return parsed.data;
+}
+
+export async function fetchAuctionItems(
+  filters: AuctionFilters,
+  signal?: AbortSignal,
+): Promise<AuctionItemsPage> {
+  const json = await getJson(`/api/auction/items?${toAuctionSearch(filters)}`, signal);
+  const parsed = AuctionItemsResponseSchema.safeParse(json);
+  if (!parsed.success) throw new ApiError("서버 응답 형식이 예상과 다릅니다.", 200);
+  return parsed.data;
+}
+
+export async function fetchAuctionOptions(signal?: AbortSignal): Promise<AuctionOptions> {
+  const json = await getJson("/api/auction/options", signal);
+  const parsed = AuctionOptionsResponseSchema.safeParse(json);
   if (!parsed.success) throw new ApiError("서버 응답 형식이 예상과 다릅니다.", 200);
   return parsed.data;
 }
