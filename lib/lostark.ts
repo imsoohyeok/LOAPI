@@ -20,6 +20,12 @@ import {
 } from "@/lib/market";
 import type { MarketItemsRequest } from "@/lib/marketParams";
 import { normalizeEngravings } from "@/lib/engravings";
+import {
+  createRateLimiter,
+  parseRateLimitHeaders,
+  RateLimitWaitError,
+  retryDelayMs,
+} from "@/lib/rateLimiter";
 
 const BASE_URL = "https://developer-lostark.game.onstove.com";
 
@@ -66,23 +72,68 @@ function getHeaders(): HeadersInit {
   };
 }
 
+// 공식 문서(developer-lostark.game.onstove.com/usage-guide) 기준 API 키당 분당 100회입니다.
+// 동시 요청 수는 원정대 일괄 조회처럼 요청이 몰릴 때 로스트아크 서버와 이 서버의 소켓을
+// 한꺼번에 점유하지 않을 정도로 둡니다. 4개 엔드포인트를 묶는 캐릭터 상세 조회 하나가 한 번에 나가는 수와 맞췄습니다.
+const RATE_LIMIT_PER_MINUTE = 100;
+const MAX_CONCURRENT_REQUESTS = 4;
+// 429를 받았을 때 다시 시도하는 횟수와, 응답을 붙잡고 기다려도 되는 최대 시간입니다.
+// 이보다 오래 기다려야 하면 사용자를 세워 두기보다 바로 "한도 초과"를 알리는 편이 낫습니다.
+const MAX_RATE_LIMIT_RETRIES = 2;
+const MAX_RETRY_WAIT_MS = 10_000;
+
+// 모듈 범위에 하나만 둬서 이 서버 프로세스의 모든 라우트가 같은 한도를 나눠 씁니다.
+const limiter = createRateLimiter({
+  limit: RATE_LIMIT_PER_MINUTE,
+  windowMs: 60_000,
+  maxConcurrent: MAX_CONCURRENT_REQUESTS,
+  maxWaitMs: MAX_RETRY_WAIT_MS,
+});
+
+function scheduleLostark<T>(task: () => Promise<T>): Promise<T> {
+  return limiter.schedule(task).catch((err: unknown) => {
+    if (err instanceof RateLimitWaitError) {
+      throw new LostarkApiError("RATE_LIMITED", "요청 한도를 초과했습니다.");
+    }
+    throw err;
+  });
+}
+
 // 거래소 검색은 POST라서 init으로 method·body를 넘길 수 있게 합니다.
 async function fetchLostark(path: string, init?: RequestInit): Promise<unknown> {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...init,
-    headers: { ...getHeaders(), ...init?.headers },
-  });
+  for (let attempt = 0; ; attempt += 1) {
+    // 본문을 다 읽을 때까지를 한 슬롯으로 봐야 동시성 제한이 실제 연결 수와 맞습니다.
+    const { status, headers, body } = await scheduleLostark(async () => {
+      const res = await fetch(`${BASE_URL}${path}`, {
+        ...init,
+        headers: { ...getHeaders(), ...init?.headers },
+      });
+      const json: unknown = res.ok ? await res.json() : null;
+      return { status: res.status, headers: res.headers, body: json };
+    });
 
-  if (res.status === 404) {
-    throw new LostarkApiError("NOT_FOUND", "캐릭터를 찾을 수 없습니다.");
+    const { remaining, resetAt } = parseRateLimitHeaders(headers);
+    limiter.syncFromHeaders(remaining, resetAt);
+
+    if (status === 429) {
+      const now = Date.now();
+      const delay = retryDelayMs(attempt, resetAt, now);
+      // 한 요청이 429를 맞았다면 큐에 있는 다른 요청도 같은 결과를 받을 테니 모두 함께 멈춥니다.
+      limiter.pauseUntil(now + delay);
+      if (attempt >= MAX_RATE_LIMIT_RETRIES || delay > MAX_RETRY_WAIT_MS) {
+        throw new LostarkApiError("RATE_LIMITED", "요청 한도를 초과했습니다.");
+      }
+      // 따로 잠들 필요 없이 다시 큐에 넣으면 limiter가 멈춘 시각까지 기다렸다가 보냅니다.
+      continue;
+    }
+    if (status === 404) {
+      throw new LostarkApiError("NOT_FOUND", "캐릭터를 찾을 수 없습니다.");
+    }
+    if (status < 200 || status >= 300) {
+      throw new LostarkApiError("UNKNOWN", `로스트아크 API 오류: ${status}`);
+    }
+    return body;
   }
-  if (res.status === 429) {
-    throw new LostarkApiError("RATE_LIMITED", "요청 한도를 초과했습니다.");
-  }
-  if (!res.ok) {
-    throw new LostarkApiError("UNKNOWN", `로스트아크 API 오류: ${res.status}`);
-  }
-  return res.json();
 }
 
 export async function getProfile(characterName: string): Promise<Profile> {
