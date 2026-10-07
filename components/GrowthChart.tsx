@@ -24,6 +24,9 @@ export default function GrowthChart({ snapshots }: { snapshots: Snapshot[] }) {
   const min = Math.min(...levels);
   const max = Math.max(...levels);
   const padding = Math.max((max - min) * 0.2, 1);
+  // 아이템레벨은 소수(1680.83)라서 여백을 더한 값을 그대로 쓰면 축 끝 눈금이 1681.8299999처럼 보입니다.
+  // 축 범위를 정수로 맞추고 소수 눈금을 끄면 1676, 1678처럼 읽기 쉬운 눈금이 나옵니다.
+  const domain = [Math.floor(min - padding), Math.ceil(max + padding)];
 
   return (
     <div className="h-64 w-full">
@@ -35,7 +38,7 @@ export default function GrowthChart({ snapshots }: { snapshots: Snapshot[] }) {
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#2a2d35" />
           <XAxis dataKey="date" stroke="#888" fontSize={12} />
-          <YAxis stroke="#888" fontSize={12} domain={[min - padding, max + padding]} />
+          <YAxis stroke="#888" fontSize={12} domain={domain} allowDecimals={false} />
           <Tooltip
             contentStyle={{ background: "#1a1d24", border: "1px solid #2a2d35" }}
           />
