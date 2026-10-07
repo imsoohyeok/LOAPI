@@ -60,6 +60,29 @@ function saveSnapshots(characterName: string, snapshots: Snapshot[]) {
   notify();
 }
 
+// 백업 복원처럼 여러 캐릭터의 기록을 한꺼번에 씁니다.
+// - 키마다 알리면 구독 중인 화면이 캐릭터 수만큼 다시 계산되므로, 다 쓴 뒤 한 번만 알립니다.
+// - 도중에 용량 초과(QuotaExceededError) 등으로 실패하면 이미 쓴 키를 원래 값으로 되돌려서
+//   "절반만 복원된" 상태를 남기지 않고, 오류는 호출한 쪽에 그대로 던집니다.
+export function writeSnapshotsBulk(entries: Record<string, Snapshot[]>) {
+  const previous: [string, string | null][] = [];
+  try {
+    for (const [name, snapshots] of Object.entries(entries)) {
+      const key = getKey(name);
+      previous.push([key, window.localStorage.getItem(key)]);
+      if (snapshots.length === 0) window.localStorage.removeItem(key);
+      else window.localStorage.setItem(key, JSON.stringify(snapshots));
+    }
+  } catch (error) {
+    for (const [key, raw] of previous.reverse()) {
+      if (raw === null) window.localStorage.removeItem(key);
+      else window.localStorage.setItem(key, raw);
+    }
+    throw error;
+  }
+  notify();
+}
+
 export function addSnapshot(characterName: string, itemLevel: number): Snapshot[] {
   const today = new Date().toISOString().slice(0, 10);
   const existing = getSnapshots(characterName).filter((s) => s.date !== today);
