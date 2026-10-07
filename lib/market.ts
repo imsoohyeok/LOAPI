@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CacheMetaSchema } from "@/lib/types";
 
 // 거래소 API(/markets/*) 응답 스키마. 서버 프록시와 클라이언트가 같은 스키마로 검증합니다.
 
@@ -50,13 +51,9 @@ export const MarketItemsPageSchema = z.object({
 });
 export type MarketItemsPage = z.infer<typeof MarketItemsPageSchema>;
 
-// 프록시가 클라이언트에 돌려주는 형태. 다른 라우트처럼 fromCache를 같이 담습니다.
-export const MarketItemsResponseSchema = MarketItemsPageSchema.extend({
-  fromCache: z.boolean().optional(),
-});
-export const MarketOptionsResponseSchema = MarketOptionsSchema.extend({
-  fromCache: z.boolean().optional(),
-});
+// 프록시가 클라이언트에 돌려주는 형태. 다른 라우트처럼 캐시 정보(fromCache, ageMs)를 같이 담습니다.
+export const MarketItemsResponseSchema = MarketItemsPageSchema.merge(CacheMetaSchema);
+export const MarketOptionsResponseSchema = MarketOptionsSchema.merge(CacheMetaSchema);
 
 export const MARKET_SORTS = [
   { value: "CURRENT_MIN_PRICE", label: "현재 최저가" },

@@ -75,6 +75,28 @@ describe("useRoster", () => {
     expect(result.current.error).toBeNull();
   });
 
+  it("응답의 캐시 정보를 브라우저 기준 조회 시각으로 바꿔 돌려준다", async () => {
+    const { result } = renderRoster();
+
+    act(() => {
+      result.current.search("본캐");
+    });
+    await waitFor(() => expect(requests).toHaveLength(1));
+    const before = Date.now();
+    act(() =>
+      requests[0]?.respond({
+        roster: [sibling("본캐")],
+        fromCache: true,
+        ageMs: 120_000,
+      }),
+    );
+
+    await waitFor(() => expect(result.current.cacheInfo).not.toBeNull());
+    expect(result.current.cacheInfo?.fromCache).toBe(true);
+    expect(result.current.cacheInfo?.fetchedAt).toBeGreaterThanOrEqual(before - 120_000);
+    expect(result.current.cacheInfo?.fetchedAt).toBeLessThanOrEqual(Date.now() - 120_000);
+  });
+
   it("API 에러 메시지를 그대로 보여준다", async () => {
     const { result } = renderRoster();
 

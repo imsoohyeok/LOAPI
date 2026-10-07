@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchMarketItems } from "@/lib/lostark";
-import { getCached, setCached } from "@/lib/cache";
+import { cacheMeta, getCached, setCached } from "@/lib/cache";
 import { toErrorResponse } from "@/lib/apiError";
 import { readMarketFilters, toMarketItemsRequest } from "@/lib/marketParams";
 import type { MarketItemsPage } from "@/lib/market";
@@ -14,13 +14,13 @@ export async function GET(request: NextRequest) {
   const cacheKey = `market:items:${JSON.stringify(body)}`;
   const cached = getCached<MarketItemsPage>(cacheKey);
   if (cached) {
-    return NextResponse.json({ ...cached, fromCache: true });
+    return NextResponse.json({ ...cached.value, ...cacheMeta(cached, true) });
   }
 
   try {
     const page = await searchMarketItems(body);
-    setCached(cacheKey, page);
-    return NextResponse.json({ ...page, fromCache: false });
+    const entry = setCached(cacheKey, page);
+    return NextResponse.json({ ...page, ...cacheMeta(entry, false) });
   } catch (err) {
     return toErrorResponse(err, "거래소 시세를 불러오는 중 오류가 발생했습니다.");
   }

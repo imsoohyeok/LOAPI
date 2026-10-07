@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMarketOptions } from "@/lib/lostark";
-import { getCached, setCached } from "@/lib/cache";
+import { cacheMeta, getCached, setCached } from "@/lib/cache";
 import { toErrorResponse } from "@/lib/apiError";
 import type { MarketOptions } from "@/lib/market";
 
@@ -12,13 +12,13 @@ export async function GET() {
   const cacheKey = "market:options";
   const cached = getCached<MarketOptions>(cacheKey);
   if (cached) {
-    return NextResponse.json({ ...cached, fromCache: true });
+    return NextResponse.json({ ...cached.value, ...cacheMeta(cached, true) });
   }
 
   try {
     const options = await getMarketOptions();
-    setCached(cacheKey, options);
-    return NextResponse.json({ ...options, fromCache: false });
+    const entry = setCached(cacheKey, options);
+    return NextResponse.json({ ...options, ...cacheMeta(entry, false) });
   } catch (err) {
     return toErrorResponse(err, "거래소 검색 옵션을 불러오는 중 오류가 발생했습니다.");
   }

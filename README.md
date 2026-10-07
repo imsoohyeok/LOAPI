@@ -55,6 +55,7 @@ lostark-analyzer/
 │   ├── types.ts                        ← Zod 스키마 + 타입
 │   ├── lostark.ts                      ← 로스트아크 API 클라이언트 (서버 전용)
 │   ├── cache.ts                        ← 인메모리 캐시
+│   ├── cacheStatus.ts                  ← 캐시 TTL·캐시 상태 배지 문구 (서버·클라이언트 공용)
 │   ├── apiError.ts                     ← API 라우트 공통 에러 응답
 │   ├── storage.ts                      ← localStorage 스냅샷 저장 (트래커용)
 │   ├── utils.ts                        ← 공통 유틸 (아이템레벨 파싱 등)
@@ -80,6 +81,9 @@ lostark-analyzer/
 - **원정대 데이터 가공은 순수 함수로 분리**했습니다. `lib/roster.ts`가 서버별 그룹·정렬·요약을
   맡아서 UI 없이 단위 테스트할 수 있고, `useRoster`는 연속 검색 시 이전 요청을 `AbortController`로
   취소해 늦게 도착한 응답이 최신 결과를 덮어쓰지 않도록 했습니다.
+- **응답이 서버 캐시에서 왔는지 배지로 보여줍니다.** API 라우트는 `fromCache`와 함께 조회 시각이
+  아닌 경과 시간(`ageMs`)을 내려주고, 클라이언트가 받은 시각에서 빼서 조회 시각을 계산합니다.
+  서버와 브라우저 시계가 어긋나도 "3분 전"이 정확하게 나옵니다.
 - **거래소 검색 조건은 URL이 원본입니다.** `lib/marketParams.ts` 하나로 페이지와 서버 프록시가 같은
   규칙으로 쿼리를 읽어서, 잘못된 값의 처리(기본값으로 되돌림)가 양쪽에서 어긋나지 않습니다. 페이지를
   넘길 때는 React Query의 `keepPreviousData`로 이전 결과를 흐리게 유지하고, "다음" 버튼에 마우스를

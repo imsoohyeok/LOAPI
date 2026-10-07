@@ -1,3 +1,4 @@
+import { toCacheInfo, type WithCacheInfo } from "@/lib/cacheStatus";
 import {
   CharacterDataSchema,
   RosterResponseSchema,
@@ -54,21 +55,24 @@ async function getJson(url: string, signal?: AbortSignal): Promise<unknown> {
 export async function fetchCharacter(
   name: string,
   signal?: AbortSignal,
-): Promise<CharacterData> {
+): Promise<WithCacheInfo<CharacterData>> {
   const json = await getJson(`/api/character/${encodeURIComponent(name)}`, signal);
   const parsed = CharacterDataSchema.safeParse(json);
   if (!parsed.success) throw new ApiError("서버 응답 형식이 예상과 다릅니다.", 200);
-  return parsed.data;
+  return { ...parsed.data, cacheInfo: toCacheInfo(parsed.data, Date.now()) };
 }
 
-export async function fetchRoster(name: string, signal?: AbortSignal): Promise<Roster> {
+export async function fetchRoster(
+  name: string,
+  signal?: AbortSignal,
+): Promise<WithCacheInfo<{ roster: Roster }>> {
   const json = await getJson(
     `/api/character/${encodeURIComponent(name)}/siblings`,
     signal,
   );
   const parsed = RosterResponseSchema.safeParse(json);
   if (!parsed.success) throw new ApiError("서버 응답 형식이 예상과 다릅니다.", 200);
-  return parsed.data.roster;
+  return { roster: parsed.data.roster, cacheInfo: toCacheInfo(parsed.data, Date.now()) };
 }
 
 export async function fetchMarketItems(

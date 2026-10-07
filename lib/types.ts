@@ -66,13 +66,22 @@ export const GemsSchema = z.object({
 });
 export type Gems = z.infer<typeof GemsSchema>;
 
-export const CharacterDataSchema = z.object({
-  profile: ProfileSchema,
-  equipment: EquipmentSchema,
-  engravings: EngravingsSchema,
-  gems: GemsSchema,
+// API 라우트가 응답마다 붙이는 캐시 정보. fromCache는 서버 메모리 캐시 적중 여부,
+// ageMs는 로스트아크 API에서 받아온 뒤 서버가 응답하기까지 지난 시간입니다.
+export const CacheMetaSchema = z.object({
   fromCache: z.boolean().optional(),
+  ageMs: z.number().nonnegative().optional(),
 });
+export type CacheMeta = z.infer<typeof CacheMetaSchema>;
+
+export const CharacterDataSchema = z
+  .object({
+    profile: ProfileSchema,
+    equipment: EquipmentSchema,
+    engravings: EngravingsSchema,
+    gems: GemsSchema,
+  })
+  .merge(CacheMetaSchema);
 export type CharacterData = z.infer<typeof CharacterDataSchema>;
 
 // /characters/{name}/siblings 응답의 한 항목. 같은 계정(원정대)의 모든 서버 캐릭터가 담겨 옵니다.
@@ -88,10 +97,11 @@ export type Sibling = z.infer<typeof SiblingSchema>;
 export const RosterSchema = z.array(SiblingSchema);
 export type Roster = z.infer<typeof RosterSchema>;
 
-export const RosterResponseSchema = z.object({
-  roster: RosterSchema,
-  fromCache: z.boolean().optional(),
-});
+export const RosterResponseSchema = z
+  .object({
+    roster: RosterSchema,
+  })
+  .merge(CacheMetaSchema);
 export type RosterResponse = z.infer<typeof RosterResponseSchema>;
 
 export const RawEquipmentSchema = z.array(EquipmentItemSchema).nullable();

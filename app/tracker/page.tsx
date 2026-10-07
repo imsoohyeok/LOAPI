@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import SearchBar from "@/components/SearchBar";
+import CacheBadge from "@/components/CacheBadge";
 import CharacterCard from "@/components/CharacterCard";
 import EngravingList from "@/components/EngravingList";
 import EquipmentGrid from "@/components/EquipmentGrid";
@@ -54,6 +55,9 @@ export default function TrackerPage() {
       {data && (
         <div key={data.profile.CharacterName}>
           <div className="motion-safe:animate-fade-slide-up">
+            <div className="mb-2 flex justify-end">
+              <CacheBadge info={data.cacheInfo} />
+            </div>
             <CharacterCard profile={data.profile} />
           </div>
 
