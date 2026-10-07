@@ -1,9 +1,10 @@
 import { QueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/lib/api";
+import { CACHE_TTL_MS } from "@/lib/cacheStatus";
 
 // 서버의 메모리 캐시(lib/cache.ts) TTL과 같은 값입니다. 이 시간 안에 다시 요청해도
 // 서버는 캐시된 응답을 돌려주므로, 클라이언트도 그동안은 네트워크를 타지 않습니다.
-export const STALE_TIME_MS = 5 * 60 * 1000;
+export const STALE_TIME_MS = CACHE_TTL_MS;
 
 const MAX_RETRIES = 1;
 
