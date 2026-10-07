@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import SearchBar from "@/components/SearchBar";
 import RosterTable from "@/components/RosterTable";
+import CacheBadge from "@/components/CacheBadge";
 import { useRoster } from "@/lib/useRoster";
 import { groupRosterByServer, summarizeRoster } from "@/lib/roster";
 
@@ -16,7 +17,7 @@ const levelFormatter = new Intl.NumberFormat("ko-KR", {
 });
 
 export default function ExpeditionPage() {
-  const { roster, searchedName, loading, error, search } = useRoster();
+  const { roster, cacheInfo, searchedName, loading, error, search } = useRoster();
 
   const groups = useMemo(() => (roster ? groupRosterByServer(roster) : []), [roster]);
   const summary = useMemo(
@@ -46,6 +47,9 @@ export default function ExpeditionPage() {
 
       {roster && summary && (
         <div key={searchedName} className="motion-safe:animate-fade-in">
+          <div className="mb-2 flex justify-end">
+            <CacheBadge info={cacheInfo} />
+          </div>
           <dl className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <SummaryItem label="캐릭터" value={`${summary.total}`} />
             <SummaryItem

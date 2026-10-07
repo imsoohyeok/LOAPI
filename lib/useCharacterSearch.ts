@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCharacter, queryKeys, toErrorMessage } from "@/lib/api";
+import type { WithCacheInfo } from "@/lib/cacheStatus";
 import type { CharacterData } from "@/lib/types";
 
 interface CharacterQueryResult {
-  data: CharacterData | null;
+  data: WithCacheInfo<CharacterData> | null;
   loading: boolean;
   error: string | null;
 }

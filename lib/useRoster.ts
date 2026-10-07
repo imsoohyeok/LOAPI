@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchRoster, queryKeys, toErrorMessage } from "@/lib/api";
+import type { CacheInfo } from "@/lib/cacheStatus";
 import type { Roster } from "@/lib/types";
 
 interface UseRosterResult {
   roster: Roster | null;
+  cacheInfo: CacheInfo | null;
   searchedName: string | null;
   loading: boolean;
   error: string | null;
@@ -33,7 +35,8 @@ export function useRoster(): UseRosterResult {
   }
 
   return {
-    roster: query.data ?? null,
+    roster: query.data?.roster ?? null,
+    cacheInfo: query.data?.cacheInfo ?? null,
     searchedName,
     loading: query.isFetching,
     error: query.isError ? toErrorMessage(query.error) : null,
