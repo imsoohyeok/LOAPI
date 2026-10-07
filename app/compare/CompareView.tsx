@@ -1,5 +1,6 @@
 "use client";
 
+import CacheBadge from "@/components/CacheBadge";
 import SearchBar from "@/components/SearchBar";
 import CompareTable from "@/components/CompareTable";
 import GradeLegend from "@/components/GradeLegend";
@@ -77,6 +78,8 @@ function SideSearch({
           {query.error}
         </div>
       )}
+      {/* 두 캐릭터는 따로 조회되므로 한쪽만 캐시에서 올 수 있어서, 배지도 칸마다 둡니다. */}
+      {query.data && !query.error && <CacheBadge info={query.data.cacheInfo} />}
     </div>
   );
 }
