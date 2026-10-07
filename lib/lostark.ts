@@ -19,6 +19,13 @@ import {
   type MarketOptions,
 } from "@/lib/market";
 import type { MarketItemsRequest } from "@/lib/marketParams";
+import {
+  AuctionItemsPageSchema,
+  AuctionOptionsSchema,
+  type AuctionItemsPage,
+  type AuctionOptions,
+} from "@/lib/auction";
+import type { AuctionItemsRequest } from "@/lib/auctionParams";
 import { normalizeEngravings } from "@/lib/engravings";
 
 const BASE_URL = "https://developer-lostark.game.onstove.com";
@@ -141,6 +148,22 @@ export async function searchMarketItems(
     body: JSON.stringify(request),
   });
   return parseOrLog(MarketItemsPageSchema, raw, "markets/items");
+}
+
+export async function getAuctionOptions(): Promise<AuctionOptions> {
+  const raw = await fetchLostark("/auctions/options");
+  return parseOrLog(AuctionOptionsSchema, raw, "auctions/options");
+}
+
+export async function searchAuctionItems(
+  request: AuctionItemsRequest,
+): Promise<AuctionItemsPage> {
+  const raw = await fetchLostark("/auctions/items", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  return parseOrLog(AuctionItemsPageSchema, raw, "auctions/items");
 }
 
 export async function getFullCharacterData(characterName: string) {

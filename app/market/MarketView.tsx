@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import MarketSearchForm from "@/components/MarketSearchForm";
 import MarketItemTable from "@/components/MarketItemTable";
 import Pagination from "@/components/Pagination";
@@ -24,7 +25,11 @@ export default function MarketView() {
         거래소
       </h1>
       <p className="mb-8 text-sm text-gray-400">
-        카테고리와 이름으로 거래소 아이템을 찾고 현재 최저가를 확인해요.
+        카테고리와 이름으로 거래소 아이템을 찾고 현재 최저가를 확인해요. 보석·장신구는{" "}
+        <Link href="/auction" className="text-accent underline underline-offset-2">
+          경매장
+        </Link>
+        에서 찾을 수 있어요.
       </p>
 
       <MarketSearchForm

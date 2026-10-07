@@ -26,4 +26,10 @@ export const FEATURES: readonly Feature[] = [
     label: "거래소",
     description: "강화 재료·각인서 같은 거래소 아이템의 현재 최저가를 검색해요.",
   },
+  {
+    href: "/auction",
+    label: "경매장",
+    description:
+      "보석·장신구 매물을 등급·품질·옵션 조건으로 찾고 즉시 구매가를 비교해요.",
+  },
 ];
