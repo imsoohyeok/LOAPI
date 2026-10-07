@@ -22,7 +22,7 @@ export default function HomePage() {
         >
           기능
         </h2>
-        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {FEATURES.map((feature) => (
             <li key={feature.href}>
               <Link
