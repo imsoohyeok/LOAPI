@@ -9,11 +9,11 @@ export default function Navbar() {
 
   return (
     <nav className="border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-3xl items-center gap-6 px-5 py-4">
+      <div className="mx-auto flex max-w-3xl items-center gap-4 whitespace-nowrap px-5 py-4 sm:gap-6">
         <Link href="/" className="font-bold">
           로스트아크 툴즈
         </Link>
-        <div className="flex gap-4 text-sm">
+        <div className="flex gap-3 overflow-x-auto text-sm sm:gap-4">
           {FEATURES.map((item) => (
             <Link
               key={item.href}
