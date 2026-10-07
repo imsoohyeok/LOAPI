@@ -7,7 +7,7 @@
 
 | 페이지           | 설명                                                                 |
 | ---------------- | -------------------------------------------------------------------- |
-| `/`              | 홈 랜딩                                                              |
+| `/`              | 홈 랜딩 (기능 소개 + 최근 기록한 캐릭터)                             |
 | `/compare`       | 두 캐릭터를 나란히 비교 (아이템레벨, 서버, 직업, 장비)               |
 | `/tracker`       | 캐릭터 아이템레벨 성장 추이를 localStorage에 기록하고 차트로 확인    |
 | `/expedition`    | 캐릭터 하나로 같은 원정대의 전 캐릭터를 서버별·아이템레벨순으로 확인 |
@@ -33,6 +33,7 @@ lostark-analyzer/
 │       └── siblings/route.ts           ← 원정대(siblings) 프록시
 ├── components/
 │   ├── Navbar.tsx
+│   ├── TrackedCharacters.tsx           ← 홈 전용 (최근 기록한 캐릭터)
 │   ├── SearchBar.tsx
 │   ├── CharacterCard.tsx
 │   ├── EquipmentGrid.tsx
@@ -42,6 +43,7 @@ lostark-analyzer/
 │   ├── GrowthChart.tsx                 ← 트래커 페이지 전용 (recharts)
 │   └── SnapshotList.tsx                ← 트래커 페이지 전용
 ├── lib/
+│   ├── features.ts                     ← 내비게이션·홈 카드 공용 페이지 목록
 │   ├── types.ts                        ← Zod 스키마 + 타입
 │   ├── lostark.ts                      ← 로스트아크 API 클라이언트 (서버 전용)
 │   ├── cache.ts                        ← 인메모리 캐시
@@ -58,6 +60,8 @@ lostark-analyzer/
 
 - **비교/트래커가 검색 로직을 공유**합니다. `lib/useCharacterSearch.ts` 훅 하나로 두 페이지 모두
   로딩·에러·데이터 상태를 관리해서 중복을 줄였습니다.
+- **홈은 서버 컴포넌트입니다.** 기능 카드는 정적으로 렌더링하고, localStorage를 읽는
+  `TrackedCharacters`만 클라이언트 컴포넌트로 분리해 마운트 후에 읽습니다(하이드레이션 불일치 방지).
 - **트래커는 서버 저장소가 없습니다.** `lib/storage.ts`가 브라우저 `localStorage`만 사용하므로
   비용이 전혀 들지 않고, 사용자의 데이터가 외부로 전송되지 않습니다.
 - **비교 테이블의 하이라이트 로직**(`CompareTable.tsx`)은 아이템레벨을 숫자로 변환해서
