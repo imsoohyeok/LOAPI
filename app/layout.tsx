@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="ko"
       className={`${gothicA1.variable} ${blackHanSans.variable} ${jetBrainsMono.variable}`}
     >
-      <body className="bg-bg font-sans text-gray-100">
+      <body className="break-keep bg-bg font-sans text-gray-100">
         <Providers>
           <Navbar />
           {children}

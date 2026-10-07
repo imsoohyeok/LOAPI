@@ -50,3 +50,23 @@ export function getTrackedCharacterNames(): string[] {
   }
   return names;
 }
+
+export interface TrackedSummary {
+  name: string;
+  latest: Snapshot;
+  count: number;
+}
+
+// 홈 화면용 요약입니다. 기록이 비어 있는 키는 건너뛰고, 마지막 기록일이 최근인 캐릭터부터 정렬합니다.
+export function getTrackedSummaries(): TrackedSummary[] {
+  return getTrackedCharacterNames()
+    .flatMap((name) => {
+      const snapshots = getSnapshots(name);
+      const latest = snapshots.at(-1);
+      return latest ? [{ name, latest, count: snapshots.length }] : [];
+    })
+    .sort(
+      (a, b) =>
+        b.latest.date.localeCompare(a.latest.date) || a.name.localeCompare(b.name),
+    );
+}
