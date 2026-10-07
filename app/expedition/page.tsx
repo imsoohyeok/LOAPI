@@ -5,6 +5,7 @@ import SearchBar from "@/components/SearchBar";
 import RosterTable from "@/components/RosterTable";
 import CacheBadge from "@/components/CacheBadge";
 import { useRoster } from "@/lib/useRoster";
+import { useRosterProfiles, type RosterProfiles } from "@/lib/useRosterProfiles";
 import { groupRosterByServer, summarizeRoster } from "@/lib/roster";
 
 // 요약 카드에서 "주력 캐릭터"로 세는 아이템레벨 기준
@@ -18,6 +19,7 @@ const levelFormatter = new Intl.NumberFormat("ko-KR", {
 
 export default function ExpeditionPage() {
   const { roster, cacheInfo, searchedName, loading, error, search } = useRoster();
+  const profiles = useRosterProfiles(roster);
 
   const groups = useMemo(() => (roster ? groupRosterByServer(roster) : []), [roster]);
   const summary = useMemo(
@@ -47,7 +49,8 @@ export default function ExpeditionPage() {
 
       {roster && summary && (
         <div key={searchedName} className="motion-safe:animate-fade-in">
-          <div className="mb-2 flex justify-end">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <ProfileProgress {...profiles} />
             <CacheBadge info={cacheInfo} />
           </div>
           <dl className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -65,7 +68,11 @@ export default function ExpeditionPage() {
               value={`${summary.countAtOrAbove}`}
             />
           </dl>
-          <RosterTable groups={groups} highlightName={searchedName} />
+          <RosterTable
+            groups={groups}
+            highlightName={searchedName}
+            profiles={profiles.byName}
+          />
         </div>
       )}
 
@@ -85,6 +92,37 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
         {label}
       </dt>
       <dd className="font-mono text-lg font-bold text-gray-100">{value}</dd>
+    </div>
+  );
+}
+
+// 전투력은 캐릭터마다 따로 받아서 도착하는 대로 표에 채웁니다. 진행 상황은 스크린 리더에도
+// 알리되(aria-live), 숫자가 바뀔 때마다 읽지 않도록 polite로 둡니다.
+function ProfileProgress({
+  total,
+  loaded,
+  failed,
+  retryFailed,
+}: Omit<RosterProfiles, "byName">) {
+  const pending = total - loaded - failed;
+  return (
+    <div className="flex items-center gap-2 text-xs text-gray-500" aria-live="polite">
+      {pending > 0 ? (
+        <span>
+          전투력 불러오는 중 {loaded + failed}/{total}
+        </span>
+      ) : failed > 0 ? (
+        <>
+          <span>전투력 {failed}개를 불러오지 못했어요.</span>
+          <button
+            type="button"
+            onClick={retryFailed}
+            className="rounded border border-border px-2 py-0.5 text-gray-300 hover:border-accent hover:text-accent"
+          >
+            다시 시도
+          </button>
+        </>
+      ) : null}
     </div>
   );
 }
