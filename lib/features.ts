@@ -21,5 +21,9 @@ export const FEATURES: readonly Feature[] = [
     label: "원정대",
     description: "캐릭터 하나로 같은 원정대의 모든 캐릭터를 서버별로 모아 봐요.",
   },
-  // 나중에 시세 트래커 추가 시 여기에 /market 항목 추가
+  {
+    href: "/market",
+    label: "거래소",
+    description: "강화 재료·각인서 같은 거래소 아이템의 현재 최저가를 검색해요.",
+  },
 ];

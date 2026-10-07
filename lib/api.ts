@@ -5,6 +5,13 @@ import {
   type CharacterData,
   type Roster,
 } from "@/lib/types";
+import {
+  MarketItemsResponseSchema,
+  MarketOptionsResponseSchema,
+  type MarketItemsPage,
+  type MarketOptions,
+} from "@/lib/market";
+import { toMarketSearch, type MarketFilters } from "@/lib/marketParams";
 
 // API 라우트가 돌려준 에러. status로 재시도 여부를 판단하고, message는 화면에 그대로 보여줍니다.
 export class ApiError extends Error {
@@ -21,6 +28,10 @@ export class ApiError extends Error {
 export const queryKeys = {
   character: (name: string) => ["character", name] as const,
   roster: (name: string) => ["roster", name] as const,
+  // 필터 객체를 키에 그대로 넣습니다. React Query는 객체 키를 속성 순서와 무관하게 해시하므로
+  // 조건이 같으면 같은 캐시를 쓰고, 하나라도 다르면 별도 캐시가 됩니다.
+  marketItems: (filters: MarketFilters) => ["market", "items", filters] as const,
+  marketOptions: () => ["market", "options"] as const,
 };
 
 async function getJson(url: string, signal?: AbortSignal): Promise<unknown> {
@@ -62,6 +73,23 @@ export async function fetchRoster(
   const parsed = RosterResponseSchema.safeParse(json);
   if (!parsed.success) throw new ApiError("서버 응답 형식이 예상과 다릅니다.", 200);
   return { roster: parsed.data.roster, cacheInfo: toCacheInfo(parsed.data, Date.now()) };
+}
+
+export async function fetchMarketItems(
+  filters: MarketFilters,
+  signal?: AbortSignal,
+): Promise<MarketItemsPage> {
+  const json = await getJson(`/api/market/items?${toMarketSearch(filters)}`, signal);
+  const parsed = MarketItemsResponseSchema.safeParse(json);
+  if (!parsed.success) throw new ApiError("서버 응답 형식이 예상과 다릅니다.", 200);
+  return parsed.data;
+}
+
+export async function fetchMarketOptions(signal?: AbortSignal): Promise<MarketOptions> {
+  const json = await getJson("/api/market/options", signal);
+  const parsed = MarketOptionsResponseSchema.safeParse(json);
+  if (!parsed.success) throw new ApiError("서버 응답 형식이 예상과 다릅니다.", 200);
+  return parsed.data;
 }
 
 // 쿼리 에러를 화면 문구로 바꿉니다. ApiError가 아니면 fetch 자체가 실패한 경우입니다.
