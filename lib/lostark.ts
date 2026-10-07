@@ -12,6 +12,13 @@ import {
   type Gems,
   type Roster,
 } from "@/lib/types";
+import {
+  MarketItemsPageSchema,
+  MarketOptionsSchema,
+  type MarketItemsPage,
+  type MarketOptions,
+} from "@/lib/market";
+import type { MarketItemsRequest } from "@/lib/marketParams";
 import { normalizeEngravings } from "@/lib/engravings";
 
 const BASE_URL = "https://developer-lostark.game.onstove.com";
@@ -59,8 +66,12 @@ function getHeaders(): HeadersInit {
   };
 }
 
-async function fetchLostark(path: string): Promise<unknown> {
-  const res = await fetch(`${BASE_URL}${path}`, { headers: getHeaders() });
+// 거래소 검색은 POST라서 init으로 method·body를 넘길 수 있게 합니다.
+async function fetchLostark(path: string, init?: RequestInit): Promise<unknown> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...init,
+    headers: { ...getHeaders(), ...init?.headers },
+  });
 
   if (res.status === 404) {
     throw new LostarkApiError("NOT_FOUND", "캐릭터를 찾을 수 없습니다.");
@@ -114,6 +125,22 @@ export async function getSiblings(characterName: string): Promise<Roster> {
     throw new LostarkApiError("NOT_FOUND", "캐릭터를 찾을 수 없습니다.");
   }
   return parsed;
+}
+
+export async function getMarketOptions(): Promise<MarketOptions> {
+  const raw = await fetchLostark("/markets/options");
+  return parseOrLog(MarketOptionsSchema, raw, "markets/options");
+}
+
+export async function searchMarketItems(
+  request: MarketItemsRequest,
+): Promise<MarketItemsPage> {
+  const raw = await fetchLostark("/markets/items", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  return parseOrLog(MarketItemsPageSchema, raw, "markets/items");
 }
 
 export async function getFullCharacterData(characterName: string) {
