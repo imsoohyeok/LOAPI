@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const NAV_ITEMS = [
-  { href: "/compare", label: "캐릭터 비교" },
-  { href: "/tracker", label: "성장 트래커" },
-  { href: "/expedition", label: "원정대" },
-  // 나중에 시세 트래커 추가 시 여기에 { href: "/market", label: "거래소 시세" } 추가
-];
+import { FEATURES } from "@/lib/features";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -20,7 +14,7 @@ export default function Navbar() {
           로스트아크 툴즈
         </Link>
         <div className="flex gap-4 text-sm">
-          {NAV_ITEMS.map((item) => (
+          {FEATURES.map((item) => (
             <Link
               key={item.href}
               href={item.href}
