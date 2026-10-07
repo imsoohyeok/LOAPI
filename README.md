@@ -5,13 +5,13 @@
 
 ## 기능
 
-| 페이지           | 설명                                                                 |
-| ---------------- | -------------------------------------------------------------------- |
-| `/`              | 홈 랜딩 (기능 소개 + 최근 기록한 캐릭터)                             |
-| `/compare`       | 두 캐릭터를 나란히 비교 (아이템레벨, 서버, 직업, 장비)               |
-| `/tracker`       | 캐릭터 아이템레벨 성장 추이를 localStorage에 기록하고 차트로 확인    |
-| `/expedition`    | 캐릭터 하나로 같은 원정대의 전 캐릭터를 서버별·아이템레벨순으로 확인 |
-| `/market` (예정) | 거래소 시세 트래커                                                   |
+| 페이지        | 설명                                                                 |
+| ------------- | -------------------------------------------------------------------- |
+| `/`           | 홈 랜딩 (기능 소개 + 최근 기록한 캐릭터)                             |
+| `/compare`    | 두 캐릭터를 나란히 비교 (아이템레벨, 서버, 직업, 장비)               |
+| `/tracker`    | 캐릭터 아이템레벨 성장 추이를 localStorage에 기록하고 차트로 확인    |
+| `/expedition` | 캐릭터 하나로 같은 원정대의 전 캐릭터를 서버별·아이템레벨순으로 확인 |
+| `/market`     | 거래소 아이템을 카테고리·등급·이름으로 검색하고 현재 최저가를 확인   |
 
 ## 기술 스택
 
@@ -28,9 +28,14 @@ lostark-analyzer/
 │   ├── compare/page.tsx                ← 캐릭터 비교 페이지
 │   ├── tracker/page.tsx                ← 성장 트래커 페이지
 │   ├── expedition/page.tsx             ← 원정대 페이지
-│   └── api/character/[name]/
-│       ├── route.ts                    ← 로스트아크 API 프록시
-│       └── siblings/route.ts           ← 원정대(siblings) 프록시
+│   ├── market/                         ← 거래소 페이지 (page.tsx + MarketView.tsx)
+│   └── api/
+│       ├── character/[name]/
+│       │   ├── route.ts                ← 로스트아크 API 프록시
+│       │   └── siblings/route.ts       ← 원정대(siblings) 프록시
+│       └── market/
+│           ├── items/route.ts          ← 거래소 검색 프록시 (GET → 로스트아크 POST)
+│           └── options/route.ts        ← 거래소 카테고리·등급 목록 프록시
 ├── components/
 │   ├── Navbar.tsx
 │   ├── TrackedCharacters.tsx           ← 홈 전용 (최근 기록한 캐릭터)
@@ -41,7 +46,10 @@ lostark-analyzer/
 │   ├── CompareTable.tsx                ← 비교 페이지 전용
 │   ├── RosterTable.tsx                 ← 원정대 페이지 전용
 │   ├── GrowthChart.tsx                 ← 트래커 페이지 전용 (recharts)
-│   └── SnapshotList.tsx                ← 트래커 페이지 전용
+│   ├── SnapshotList.tsx                ← 트래커 페이지 전용
+│   ├── MarketSearchForm.tsx            ← 거래소 페이지 전용 (카테고리·등급·검색어)
+│   ├── MarketItemTable.tsx             ← 거래소 페이지 전용 (정렬 가능한 시세 표)
+│   └── Pagination.tsx
 ├── lib/
 │   ├── features.ts                     ← 내비게이션·홈 카드 공용 페이지 목록
 │   ├── types.ts                        ← Zod 스키마 + 타입
@@ -52,7 +60,10 @@ lostark-analyzer/
 │   ├── utils.ts                        ← 공통 유틸 (아이템레벨 파싱 등)
 │   ├── roster.ts                       ← 원정대 서버별 그룹·정렬·요약 (순수 함수)
 │   ├── useCharacterSearch.ts           ← 캐릭터 조회 공용 훅
-│   └── useRoster.ts                    ← 원정대 조회 훅
+│   ├── useRoster.ts                    ← 원정대 조회 훅
+│   ├── market.ts                       ← 거래소 응답 스키마 + 가격 계산 (순수 함수)
+│   ├── marketParams.ts                 ← 거래소 검색 조건 ↔ URL 쿼리 (클라이언트·서버 공용)
+│   └── useMarket.ts                    ← 거래소 URL 상태·검색·옵션 훅
 └── __tests__/                          ← Vitest + RTL 테스트
 ```
 
@@ -69,6 +80,10 @@ lostark-analyzer/
 - **원정대 데이터 가공은 순수 함수로 분리**했습니다. `lib/roster.ts`가 서버별 그룹·정렬·요약을
   맡아서 UI 없이 단위 테스트할 수 있고, `useRoster`는 연속 검색 시 이전 요청을 `AbortController`로
   취소해 늦게 도착한 응답이 최신 결과를 덮어쓰지 않도록 했습니다.
+- **거래소 검색 조건은 URL이 원본입니다.** `lib/marketParams.ts` 하나로 페이지와 서버 프록시가 같은
+  규칙으로 쿼리를 읽어서, 잘못된 값의 처리(기본값으로 되돌림)가 양쪽에서 어긋나지 않습니다. 페이지를
+  넘길 때는 React Query의 `keepPreviousData`로 이전 결과를 흐리게 유지하고, "다음" 버튼에 마우스를
+  올리면 다음 페이지를 미리 받아 둡니다.
 - **AI 분석 기능은 제거했습니다.** 별도 API 크레딧/과금 없이 로스트아크 API만으로 완결되는
   구조로 방향을 바꿨습니다.
 
@@ -90,7 +105,8 @@ lostark-analyzer/
 
 ## 다음 단계 (직접 채워보면 좋은 것)
 
-- [ ] `/market` 페이지 — 거래소 시세 API 연동 + recharts 라인차트
+- [x] `/market` 페이지 — 거래소 시세 검색·필터·페이지네이션
+- [ ] `/market` 아이템 상세 — `/markets/items/{id}` 가격 이력 + recharts 라인차트
 - [ ] 비교 페이지에 URL 쿼리파라미터로 비교 결과 공유 링크 만들기 (`?a=이름1&b=이름2`)
 - [ ] 트래커 페이지에서 여러 캐릭터를 한 화면에서 전환하며 보기 (`getTrackedCharacterNames` 활용)
 - [ ] `CompareTable`, `GrowthChart`, `storage.ts`에 대한 Vitest 테스트 추가
