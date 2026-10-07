@@ -22,7 +22,9 @@ export class RateLimitWaitError extends Error {
 }
 
 export interface RateLimiter {
-  schedule<T>(task: () => Promise<T>): Promise<T>;
+  // signal이 취소되면 아직 큐에서 기다리는 작업은 보내지 않고 빼냅니다. 사용자가 다른 원정대를
+  // 검색해 이전 요청이 쓸모없어졌을 때 한도를 낭비하지 않기 위해서입니다.
+  schedule<T>(task: () => Promise<T>, signal?: AbortSignal): Promise<T>;
   // 서버가 알려준 남은 요청 수와 초기화 시각으로 로컬 계산을 보정합니다.
   syncFromHeaders(remaining: number | null, resetAt: number | null): void;
   // 429를 받았을 때처럼 until(ms)까지 새 요청을 보내지 않습니다.
@@ -83,10 +85,21 @@ export function createRateLimiter({
   }
 
   return {
-    schedule<T>(task: () => Promise<T>): Promise<T> {
+    schedule<T>(task: () => Promise<T>, signal?: AbortSignal): Promise<T> {
       return new Promise<T>((resolve, reject) => {
-        queue.push({
+        if (signal?.aborted) {
+          reject(signal.reason);
+          return;
+        }
+        const onAbort = () => {
+          const index = queue.indexOf(entry);
+          if (index === -1) return;
+          queue.splice(index, 1);
+          reject(signal!.reason);
+        };
+        const entry: QueuedTask = {
           run: () => {
+            signal?.removeEventListener("abort", onAbort);
             task()
               .then(resolve, reject)
               .finally(() => {
@@ -95,7 +108,9 @@ export function createRateLimiter({
               });
           },
           reject,
-        });
+        };
+        signal?.addEventListener("abort", onAbort, { once: true });
+        queue.push(entry);
         pump();
       });
     },

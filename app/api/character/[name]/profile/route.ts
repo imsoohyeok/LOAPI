@@ -7,7 +7,7 @@ import type { CharacterData, Profile } from "@/lib/types";
 // 원정대 일괄 조회용 가벼운 엔드포인트. 전체 상세(/api/character/[name])는 로스트아크 API를
 // 4번 부르지만 이 라우트는 프로필 1번만 불러서, 캐릭터 30개짜리 원정대도 분당 한도(100회) 안에 들어옵니다.
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { name: string } },
 ) {
   const { name } = params;
@@ -32,7 +32,8 @@ export async function GET(
   }
 
   try {
-    const profile = await getProfile(name);
+    // 브라우저가 요청을 취소하면(다른 원정대를 검색한 경우 등) 큐에서 기다리던 로스트아크 요청도 뺍니다.
+    const profile = await getProfile(name, request.signal);
     const entry = setCached(cacheKey, profile);
     return NextResponse.json({ profile, ...cacheMeta(entry, false) });
   } catch (err) {

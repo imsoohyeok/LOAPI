@@ -131,6 +131,37 @@ describe("createRateLimiter", () => {
     expect(limiter.pending).toBe(0);
   });
 
+  it("signal이 취소되면 큐에서 기다리던 작업을 보내지 않고 뺀다", async () => {
+    const limiter = createRateLimiter({ limit: 100, windowMs: 60_000, maxConcurrent: 1 });
+    const running = deferred();
+    void limiter.schedule(() => running.promise);
+    const controller = new AbortController();
+    const task = vi.fn(async () => undefined);
+
+    const queued = limiter.schedule(task, controller.signal);
+    expect(limiter.pending).toBe(1);
+    controller.abort();
+
+    await expect(queued).rejects.toMatchObject({ name: "AbortError" });
+    expect(limiter.pending).toBe(0);
+    running.resolve();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(task).not.toHaveBeenCalled();
+  });
+
+  it("이미 실행을 시작한 작업은 signal이 취소돼도 큐에서 다시 빼지 않는다", async () => {
+    const limiter = createRateLimiter({ limit: 100, windowMs: 60_000, maxConcurrent: 1 });
+    const controller = new AbortController();
+    const running = deferred<string>();
+
+    const result = limiter.schedule(() => running.promise, controller.signal);
+    controller.abort();
+    running.resolve("done");
+
+    await expect(result).resolves.toBe("done");
+    expect(limiter.active).toBe(0);
+  });
+
   it("작업이 실패해도 슬롯을 돌려주고 에러를 그대로 전달한다", async () => {
     const limiter = createRateLimiter({ limit: 100, windowMs: 60_000, maxConcurrent: 1 });
     const failed = limiter.schedule(async () => {

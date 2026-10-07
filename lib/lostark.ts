@@ -90,8 +90,8 @@ const limiter = createRateLimiter({
   maxWaitMs: MAX_RETRY_WAIT_MS,
 });
 
-function scheduleLostark<T>(task: () => Promise<T>): Promise<T> {
-  return limiter.schedule(task).catch((err: unknown) => {
+function scheduleLostark<T>(task: () => Promise<T>, signal?: AbortSignal): Promise<T> {
+  return limiter.schedule(task, signal ?? undefined).catch((err: unknown) => {
     if (err instanceof RateLimitWaitError) {
       throw new LostarkApiError("RATE_LIMITED", "요청 한도를 초과했습니다.");
     }
@@ -110,7 +110,7 @@ async function fetchLostark(path: string, init?: RequestInit): Promise<unknown> 
       });
       const json: unknown = res.ok ? await res.json() : null;
       return { status: res.status, headers: res.headers, body: json };
-    });
+    }, init?.signal ?? undefined);
 
     const { remaining, resetAt } = parseRateLimitHeaders(headers);
     limiter.syncFromHeaders(remaining, resetAt);
@@ -136,9 +136,13 @@ async function fetchLostark(path: string, init?: RequestInit): Promise<unknown> 
   }
 }
 
-export async function getProfile(characterName: string): Promise<Profile> {
+export async function getProfile(
+  characterName: string,
+  signal?: AbortSignal,
+): Promise<Profile> {
   const raw = await fetchLostark(
     `/armories/characters/${encodeURIComponent(characterName)}/profiles`,
+    { signal },
   );
   return parseOrLog(ProfileSchema, raw, "profiles");
 }
