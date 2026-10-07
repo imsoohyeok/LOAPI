@@ -39,15 +39,15 @@ describe("formatAge", () => {
 });
 
 describe("describeCacheStatus", () => {
-  it("서버 캐시 적중이면 캐시 라벨과 경과 시간을 돌려준다", () => {
+  it("서버 캐시 적중이면 저장된 정보 라벨과 경과 시간을 돌려준다", () => {
     const status = describeCacheStatus({ fromCache: true, fetchedAt: 0 }, 3 * MINUTE);
-    expect(status.label).toBe("서버 캐시");
+    expect(status.label).toBe("저장된 정보");
     expect(status.age).toBe("3분 전");
   });
 
-  it("새로 조회한 응답이면 조회 라벨을 돌려준다", () => {
+  it("새로 조회한 응답이면 새로 불러옴 라벨을 돌려준다", () => {
     const status = describeCacheStatus({ fromCache: false, fetchedAt: 0 }, 1000);
-    expect(status.label).toBe("새로 조회");
+    expect(status.label).toBe("새로 불러옴");
     expect(status.age).toBe("방금");
   });
 });

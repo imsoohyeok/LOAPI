@@ -38,12 +38,11 @@ export function formatAge(ageMs: number): string {
 }
 
 export function describeCacheStatus(info: CacheInfo, now: number): CacheStatus {
-  const ttlNote = `같은 캐릭터는 ${TTL_MINUTES}분 동안 저장된 응답을 다시 써요.`;
   return {
-    label: info.fromCache ? "서버 캐시" : "새로 조회",
+    label: info.fromCache ? "저장된 정보" : "새로 불러옴",
     age: formatAge(now - info.fetchedAt),
     description: info.fromCache
-      ? `${TTL_MINUTES}분 안에 같은 캐릭터를 조회한 기록이 있어서, 로스트아크 API를 다시 부르지 않고 서버에 저장된 응답을 보여줘요.`
-      : `로스트아크 API에서 직접 받아온 응답이에요. ${ttlNote}`,
+      ? `최근 ${TTL_MINUTES}분 안에 이 캐릭터를 검색한 적이 있어서, 그때 저장해 둔 정보를 보여줘요. 게임 속 최신 상태와 조금 다를 수 있어요.`
+      : `로스트아크에서 방금 새로 불러온 정보예요. 같은 캐릭터는 ${TTL_MINUTES}분 동안 이 정보를 다시 써요.`,
   };
 }
