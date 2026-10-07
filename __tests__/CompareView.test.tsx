@@ -84,3 +84,23 @@ describe("CompareView", () => {
     pushState.mockRestore();
   });
 });
+
+describe("CompareView 공유 버튼", () => {
+  it("비교 결과가 나오면 지금 주소를 클립보드에 복사한다", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+    const url = `/compare?a=${encodeURIComponent("본캐")}&b=${encodeURIComponent("부캐")}`;
+    renderView(url);
+
+    await waitFor(() => expect(requests).toHaveLength(2));
+    act(() => {
+      for (const req of requests) {
+        req.respond(character(decodeURIComponent(req.url.split("/").pop()!)));
+      }
+    });
+
+    await user.click(await screen.findByRole("button", { name: "비교 링크 복사" }));
+    expect(writeText).toHaveBeenCalledWith(window.location.origin + url);
+    expect(screen.getByRole("button", { name: "복사됐어요!" })).toBeInTheDocument();
+  });
+});

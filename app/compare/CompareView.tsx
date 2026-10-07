@@ -3,6 +3,7 @@
 import SearchBar from "@/components/SearchBar";
 import CompareTable from "@/components/CompareTable";
 import GradeLegend from "@/components/GradeLegend";
+import ShareButton from "@/components/ShareButton";
 import { useCharacterQuery } from "@/lib/useCharacterSearch";
 import { useCompareNames } from "@/lib/useCompareNames";
 
@@ -32,9 +33,12 @@ export default function CompareView() {
           key={`${left.data.profile.CharacterName}-${right.data.profile.CharacterName}`}
           className="motion-safe:animate-fade-in"
         >
-          <p className="mb-3 text-xs text-gray-600">
-            ※ 전투력·아이템레벨은 로스트아크 API 캐시 특성상 실제 게임과 다를 수 있어요.
-          </p>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-xs text-gray-600">
+              ※ 전투력·아이템레벨은 로스트아크 API 캐시 특성상 실제 게임과 다를 수 있어요.
+            </p>
+            <ShareButton />
+          </div>
           <GradeLegend />
           <CompareTable left={left.data} right={right.data} />
         </div>
